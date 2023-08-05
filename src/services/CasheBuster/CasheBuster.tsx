@@ -5,16 +5,16 @@ import packageJson from '../../../package.json'
 global.appVersion = packageJson.version
 
 interface CacheBusterCallbackProps {
-  loading: boolean;
-  isLatestVersion: boolean;
-  refreshCacheAndReload: () => void;
+  loading: boolean
+  isLatestVersion: boolean
+  refreshCacheAndReload: () => void
 }
 
 interface CacheBusterProps {
-  children: (props: CacheBusterCallbackProps) => React.ReactNode;
+  children: (props: CacheBusterCallbackProps) => React.ReactNode
 }
 
-const semverGreaterThan = (versionA, versionB)=> {
+const semverGreaterThan = (versionA: string, versionB: string) => {
   const versionsA = versionA.split(/\./g)
 
   const versionsB = versionB.split(/\./g)
@@ -30,8 +30,11 @@ const semverGreaterThan = (versionA, versionB)=> {
   return false
 }
 
-const CacheBuster = ({ children }:CacheBusterProps)  => {
-  const [state, setState] = useState<{loading:boolean,isLatestVersion:boolean}>({
+const CacheBuster = ({ children }: CacheBusterProps) => {
+  const [state, setState] = useState<{
+    loading: boolean
+    isLatestVersion: boolean
+  }>({
     loading: true,
     isLatestVersion: false,
   })

@@ -1,5 +1,4 @@
-import { Navigate, Route, RouteProps } from 'react-router-dom'
-import { NotAuthorized } from './NotAuthorized'
+import { Route, RouteProps } from 'react-router-dom'
 
 interface PrivateRouteProps {
   element: React.LazyExoticComponent<() => JSX.Element>

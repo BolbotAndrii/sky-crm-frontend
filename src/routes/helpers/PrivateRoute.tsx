@@ -1,4 +1,4 @@
-import { Navigate, Route, RouteProps } from 'react-router-dom'
+import { Route, RouteProps } from 'react-router-dom'
 import { NotAuthorized } from './NotAuthorized'
 
 interface PrivateRouteProps {
@@ -15,22 +15,12 @@ export const privateRoute: React.FC<ExtendedRouteProps> = ({
   ...route
 }): JSX.Element => {
   const Component = element
-  const isAuth: null | string =
-    JSON.parse(localStorage.getItem('auth') as string)?.token || null
 
   return (
     <Route
       key={route.path}
       path={route.path}
-      element={
-        !isAuth ? (
-          <Navigate to='/login' replace={true} />
-        ) : !isAccess ? (
-          <NotAuthorized path='/' />
-        ) : (
-          <Component />
-        )
-      }
+      element={!isAccess ? <NotAuthorized path='/' /> : <Component />}
       {...route}
     />
   )

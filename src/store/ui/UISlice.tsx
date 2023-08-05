@@ -3,19 +3,19 @@ import { createSlice } from '@reduxjs/toolkit'
 const UiSlice = createSlice({
   name: 'UI',
   initialState: {
-    isOpen: false,
     theme: 'dark',
+    loading: false,
   },
   reducers: {
-    toggleMenu: state => {
-      state.isOpen = !state.isOpen
+    toggleLoading: (state, { payload }) => {
+      state.loading = payload
     },
-    changeAppTheme: (state, { payload }) => {
-      state.theme = payload
+    toggleTheme: state => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark'
     },
   },
 })
 
-export const { toggleMenu, changeAppTheme } = UiSlice.actions
+export const { toggleLoading, toggleTheme } = UiSlice.actions
 
 export default UiSlice.reducer

@@ -1,17 +1,11 @@
 html,
-body,
-#root {
-  max-width: 100vw;
-}
 body {
+  box-sizing: border-box;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #1f1f1f;
-  /*overflow-x: hidden;*/
 }
 
 code {
@@ -38,10 +32,6 @@ img {
 a {
   text-decoration: none;
 }
-
-// p {
-//   margin-bottom: 0rem !important;
-// }
 
 ::-webkit-scrollbar {
   width: 10px !important;

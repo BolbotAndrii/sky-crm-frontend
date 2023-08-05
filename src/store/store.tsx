@@ -2,9 +2,11 @@ import { configureStore } from '@reduxjs/toolkit'
 import { combineReducers } from 'redux'
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
 import ui from './ui/UISlice'
+import auth from './auth/authSlice'
 
 const rootReducer = combineReducers({
   ui,
+  auth,
 })
 
 const store = configureStore({
