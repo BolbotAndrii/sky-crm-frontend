@@ -6,7 +6,9 @@ import { useNavigate } from 'react-router-dom'
 import { RoutesPath } from 'routes/types'
 import { lastModuleVisited } from 'utils/lastModuleVisit'
 import { useDispatch } from 'react-redux'
-import { setToken } from 'store/auth/authSlice'
+import { loginUser } from './authSlice'
+
+// import { setToken } from 'store/auth/authSlice'
 
 const inintialState = {
   email: '',
@@ -61,9 +63,9 @@ export const Login = () => {
     }
     setLoading(true)
     try {
-      Promise.resolve()
-      dispatch(setToken('example token'))
-      navigate(redirectTo || RoutesPath.DASHBOARD)
+      dispatch(loginUser({ email: state.email, password: state.password }))
+      // dispatch(setToken('example token'))
+      // navigate(redirectTo || RoutesPath.DASHBOARD)
     } catch (error) {
       console.log(error)
     } finally {

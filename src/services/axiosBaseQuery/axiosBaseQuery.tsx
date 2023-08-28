@@ -1,9 +1,10 @@
 import axios from 'axios'
-import { getTokenFromLS } from 'utils/getTokenFromLS'
-import moment from 'moment-timezone'
-import { setTokenToLS } from 'utils/setTokenToLS'
 
-const axiosInstance = (() => {
+import moment from 'moment-timezone'
+
+import { store } from 'store/store'
+
+const axiosBaseQuery = (() => {
   const params = {}
   const headers = {
     Accept: 'application/json',
@@ -18,9 +19,9 @@ const axiosInstance = (() => {
   })
 })()
 
-axiosInstance.interceptors.request.use(
+axiosBaseQuery.interceptors.request.use(
   config => {
-    const token = getTokenFromLS()
+    const token = store.getState().auth.tokens?.refresh?.token
 
     if (token) config.headers.Authorization = `Bearer ${token}`
 
@@ -28,16 +29,16 @@ axiosInstance.interceptors.request.use(
   },
   error => Promise.reject(error),
 )
-axiosInstance.interceptors.response.use(
+axiosBaseQuery.interceptors.response.use(
   data => data,
   error => {
-    if (error.response?.status === 401) {
-      setTokenToLS(null)
-      window.location.href = '/login'
-    }
+    // if (error.response?.status === 401) {
+    //   setTokenToLS(null)
+    //   window.location.href = '/login'
+    // }
 
     return Promise.reject(error)
   },
 )
 
-export default axiosInstance
+export default axiosBaseQuery

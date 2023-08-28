@@ -18,9 +18,10 @@ import { useAppSelector } from 'store/store'
 import { toggleTheme, toggleLoading } from 'store/ui/UISlice'
 import { useDispatch } from 'react-redux'
 import { Loader } from 'components/Loader/Loader'
-import { resetToken } from 'store/auth/authSlice'
+import { logoutUser } from 'features/Login/authSlice'
+// import { resetToken } from 'store/auth/authSlice'
 
-const { Header, Content, Footer, Sider } = Layout
+const { Content, Footer, Sider } = Layout
 
 type MenuItem = Required<MenuProps>['items'][number]
 
@@ -59,7 +60,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   }
 
   const handleLogout = () => {
-    dispatch(resetToken())
+    dispatch(logoutUser())
     navigate(RoutesPath.LOGIN)
   }
 

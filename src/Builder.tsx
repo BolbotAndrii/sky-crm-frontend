@@ -7,8 +7,8 @@ import { useAppSelector } from 'store/store'
 const { defaultAlgorithm, darkAlgorithm } = theme
 
 export const Builder = () => {
-  const isDarkMode = useAppSelector(state => state.ui.theme) === 'dark'
-  const isAuth = useAppSelector(state => state.auth.token)
+  const isDarkMode = useAppSelector(state => state?.ui?.theme) === 'dark'
+  const isAuth = useAppSelector(state => state?.auth?.tokens?.access?.token)
 
   return (
     <ConfigProvider
