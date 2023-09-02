@@ -11,7 +11,11 @@ import './styles/index.scss'
 
 export const App = () => {
   return (
-    <Suspense fallback={<Spin />}>
+    <Suspense
+      fallback={
+        <Spin style={{ position: 'absolute', left: '30%', top: '45%' }} />
+      }
+    >
       <CookiesDetector>
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>

@@ -27,7 +27,7 @@ const rootReducer = combineReducers({
 })
 
 const reducerProxy = (state: any, action: AnyAction) => {
-  if (action.type.includes('auth/logout/fulfilled')) {
+  if (action.type.includes('auth/logoutApp')) {
     return rootReducer(undefined, action)
   }
 

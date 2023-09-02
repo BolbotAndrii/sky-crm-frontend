@@ -119,7 +119,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
       <Layout style={{ position: 'relative' }}>
         {/* <Header style={{ padding: 0, background: colorBgContainer }} /> */}
-        <Content style={{ margin: '24px 16px 0' }}>
+        <Content style={{ margin: '24px 16px 0', overflow: 'scroll' }}>
           <div
             style={{
               padding: 24,
@@ -130,9 +130,9 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
             {children}
           </div>
         </Content>
-        <Footer style={{ textAlign: 'center' }}>
+        {/* <Footer style={{ textAlign: 'center' }}>
           <Typography.Text>Sky CRM ©2023</Typography.Text>
-        </Footer>
+        </Footer> */}
       </Layout>
 
       <LoaderWrapper loading={loading}>

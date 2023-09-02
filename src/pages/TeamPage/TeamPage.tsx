@@ -1,11 +1,11 @@
 import React from 'react'
 import { MainLayout } from 'layouts/MainLayout'
-import { TeamsTable } from 'features/Team/TeamsTable'
+import { UsersTable } from 'features/User/UsersTable/UsersTable'
 
 const TeamPage = () => {
   return (
     <MainLayout>
-      <TeamsTable />
+      <UsersTable />
     </MainLayout>
   )
 }

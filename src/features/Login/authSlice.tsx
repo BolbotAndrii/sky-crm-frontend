@@ -1,16 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { login, logout } from 'api/auth'
 import { RootState } from 'store/store'
-
-import { setTokenToLS } from 'utils/setTokenToLS'
-
-interface User {
-  // Здесь описываете поля пользователя
-}
+import { IUser } from 'types/User'
 
 interface AuthState {
   loading: boolean
-  user: User
+  user: IUser
   tokens: {
     access: { token: string; expires: string }
     refresh: { token: string; expires: string }
@@ -30,7 +25,6 @@ export const loginUser = createAsyncThunk(
     try {
       const res = await login({ email, password })
 
-      // setTokenToLS(res);
       return res
     } catch (error) {
       if (error.response && error.response.data.message) {
@@ -43,10 +37,12 @@ export const loginUser = createAsyncThunk(
 )
 export const logoutUser = createAsyncThunk(
   'auth/logout',
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue, getState, dispatch }) => {
     const refreshToken = (getState() as RootState).auth.tokens?.refresh?.token
     try {
       await logout({ refreshToken })
+      dispatch(logoutApp())
+      localStorage.setItem('persist:auth', '')
     } catch (error) {
       if (error.response && error.response.data.message) {
         return rejectWithValue(error.response.data.message)
@@ -68,7 +64,11 @@ const initialState: AuthState = {
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {},
+  reducers: {
+    logoutApp: state => {
+      state = initialState
+    },
+  },
   extraReducers: {
     //LOGIN
     [loginUser.pending]: state => {
@@ -99,5 +99,7 @@ const authSlice = createSlice({
     },
   },
 })
+
+export const { logoutApp } = authSlice.actions
 
 export default authSlice.reducer

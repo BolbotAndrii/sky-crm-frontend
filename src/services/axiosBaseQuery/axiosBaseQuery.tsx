@@ -3,6 +3,7 @@ import axios from 'axios'
 import moment from 'moment-timezone'
 
 import { store } from 'store/store'
+import { logoutUser } from 'features/Login/authSlice'
 
 const axiosBaseQuery = (() => {
   const params = {}
@@ -32,10 +33,10 @@ axiosBaseQuery.interceptors.request.use(
 axiosBaseQuery.interceptors.response.use(
   data => data,
   error => {
-    // if (error.response?.status === 401) {
-    //   setTokenToLS(null)
-    //   window.location.href = '/login'
-    // }
+    if (error.response?.status === 401) {
+      store.dispatch(logoutUser())
+      window.location.href = '/login'
+    }
 
     return Promise.reject(error)
   },

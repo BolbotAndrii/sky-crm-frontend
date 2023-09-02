@@ -39,6 +39,13 @@ export const PrivateRouter = () => {
         isAccess: true,
       },
       {
+        path: RoutesPath.TEAM_USER,
+        title: 'User',
+        exact: true,
+        element: lazyWithRetry(() => import('../pages/UserPage/UserPage')),
+        isAccess: true,
+      },
+      {
         path: RoutesPath.TRASH,
         title: 'Trash',
         exact: true,

@@ -1,4 +1,4 @@
-import { Button, Checkbox, Typography, Input, Spin } from 'antd'
+import { Button, Typography, Input, Spin } from 'antd'
 
 import React, { ChangeEvent } from 'react'
 
@@ -57,6 +57,7 @@ export const Form: React.FC<IProps> = ({
               className='email-input'
               placeholder='Enter your login...'
               status={!!error?.email && 'error'}
+              value={state.email}
             />
             {!!error?.email && <ErrorMessage>{error.email}</ErrorMessage>}
           </InputBox>
@@ -71,6 +72,7 @@ export const Form: React.FC<IProps> = ({
               onChange={handleChange}
               placeholder='Enter your password...'
               status={!!error?.password && 'error'}
+              value={state.password}
               iconRender={visible =>
                 visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
               }
@@ -78,25 +80,6 @@ export const Form: React.FC<IProps> = ({
             {!!error?.password && <ErrorMessage>{error.password}</ErrorMessage>}
           </InputBox>
         </ControlsWrapper>
-
-        <div
-          style={{ display: 'flex', marginBottom: '20px', marginRight: 'auto' }}
-        >
-          <Checkbox
-            checked={state.remember}
-            onChange={e =>
-              handleChange({
-                target: {
-                  name: 'remember',
-                  value: e.target.checked,
-                },
-              })
-            }
-          />
-          <Typography.Text style={{ color: 'white' }}>
-            Remember me
-          </Typography.Text>
-        </div>
 
         {loading ? (
           <Spin />
