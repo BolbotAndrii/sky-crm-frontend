@@ -33,10 +33,10 @@ axiosBaseQuery.interceptors.request.use(
 axiosBaseQuery.interceptors.response.use(
   data => data,
   error => {
-    if (error.response?.status === 401) {
-      store.dispatch(logoutUser())
-      window.location.href = '/login'
-    }
+    // if (error.response?.status === 401) {
+    //   store.dispatch(logoutUser())
+    //   window.location.href = '/login'
+    // }
 
     return Promise.reject(error)
   },

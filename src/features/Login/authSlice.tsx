@@ -83,6 +83,7 @@ const authSlice = createSlice({
     },
     [loginUser.rejected]: (state, { payload }) => {
       state.loading = false
+      state.success = false
       state.error = payload
     },
     //LOGOUT
