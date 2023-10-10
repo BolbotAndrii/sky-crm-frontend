@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 
-import { Tooltip } from 'antd'
+import { Tooltip, Button } from 'antd'
 
 import { Table } from 'components/Table/Table'
 
@@ -11,12 +11,13 @@ import { SorterResult } from 'antd/lib/table/interface'
 import { ColumnProps } from 'antd/lib/table'
 import { toggleLoading } from 'store/ui/UISlice'
 import { useDispatch } from 'react-redux'
-
-const linkStyle = {
-  color: '#1890ff',
-  textDecoration: 'underline',
-  cursor: 'pointer',
-}
+import { IOffice } from 'types/Office'
+import { getOfficeList } from 'api/office'
+import moment from 'moment-timezone'
+import { TableActions } from 'components/TableActions/TableActions'
+import styled from 'styled-components'
+import { useNavigate } from 'react-router-dom'
+import { RoutesPath } from 'routes/types'
 
 const renderTitle = name => (
   <Tooltip placement='topLeft' title={name}>
@@ -25,8 +26,9 @@ const renderTitle = name => (
 )
 
 export const OfficeTable = () => {
+  const navigate = useNavigate()
   const dispatch = useDispatch()
-  const [data, setData] = useState<[]>([])
+  const [data, setData] = useState<IOffice[]>([])
   const [loading, setLoading] = useState(false)
 
   const [pagination, setPagination] = useState({
@@ -43,14 +45,9 @@ export const OfficeTable = () => {
   const fetchList = async (params?: object) => {
     setLoading(true)
     try {
-      // const { clients, meta } = await getClientsList(params)
-      // setData(
-      //   clients?.map((item: IClient, index: number) => ({
-      //     ...item,
-      //     key: index,
-      //   })),
-      // )
-      // setPagination(meta)
+      const { data, meta } = await getOfficeList(params)
+      setData(data)
+      setPagination(meta)
     } catch ({ response }) {
       console.error(response)
     } finally {
@@ -61,8 +58,8 @@ export const OfficeTable = () => {
 
   const handleTableChange = (
     pagination: PaginationConfig,
-    filters: Partial<Record<keyof object, string[]>>,
-    sorter: SorterResult<object>,
+    filters: Partial<Record<keyof IOffice, string[]>>,
+    sorter: SorterResult<IOffice>,
   ) => {
     fetchList({
       page: pagination.current,
@@ -78,57 +75,87 @@ export const OfficeTable = () => {
     })
   }
 
-  const columns: ColumnProps<any> = useMemo(
+  const tableActionProps = (record: IOffice) => ({
+    todos: ['delete', 'edit'],
+    callbacks: [() => null, () => null],
+
+    disabled: [false, false, true],
+    tooltips: ['Remove this office?', 'Open this office in the new tab?'],
+    popConfirms: ['Are you sure that you want to delete this office?'],
+  })
+
+  const columns: ColumnProps<IOffice[]> = useMemo(
     () => [
       {
-        title: renderTitle('Column#1'),
-        dataIndex: 'name',
+        title: renderTitle('Status'),
+        dataIndex: 'active',
         sorter: true,
+        render: value => <p>{value ? 'Active' : 'Inactive'}</p>,
+        width: 100,
       },
       {
-        title: renderTitle('Column#2'),
-        dataIndex: 'name',
+        title: renderTitle('Title'),
+        dataIndex: 'title',
         sorter: true,
+        width: 200,
       },
       {
-        title: renderTitle('Column#3'),
-        dataIndex: 'name',
+        title: renderTitle('Description'),
+        dataIndex: 'description',
         sorter: true,
+        width: 200,
       },
       {
-        title: renderTitle('Column#4'),
-        dataIndex: 'name',
+        title: renderTitle('GEO'),
+        dataIndex: 'geos',
         sorter: true,
+        width: 100,
       },
       {
-        title: renderTitle('Column#5'),
-        dataIndex: 'name',
+        title: renderTitle('Priority'),
+        dataIndex: 'priority',
         sorter: true,
+        width: 100,
       },
       {
-        title: renderTitle('Column#6'),
-        dataIndex: 'name',
+        title: renderTitle('Status'),
+        dataIndex: 'status',
         sorter: true,
+        width: 200,
       },
       {
-        title: renderTitle('Column#7'),
-        dataIndex: 'name',
+        title: renderTitle('Time of Work'),
+        dataIndex: 'time_cards',
         sorter: true,
+        render: time => <p>{`${time.time_start}:${time.time_end}`}</p>,
+        width: 200,
       },
       {
-        title: renderTitle('Column#8'),
-        dataIndex: 'name',
+        title: renderTitle('Created at'),
+        dataIndex: 'created_at',
         sorter: true,
+        width: 150,
+        render: data => moment(data).format('DD/MM/YYYY HH:mm'),
+        width: 200,
       },
       {
-        title: renderTitle('Column#9'),
-        dataIndex: 'name',
+        title: renderTitle('Updated_at'),
+        dataIndex: 'updated_at',
         sorter: true,
+        width: 150,
+        render: data => moment(data).format('DD/MM/YYYY HH:mm'),
+        width: 200,
       },
       {
-        title: renderTitle('Column#10'),
-        dataIndex: 'name',
-        sorter: true,
+        title: renderTitle('Actions'),
+        dataIndex: 'actions',
+        align: 'center',
+
+        fixed: 'right',
+        render: (value, record) => (
+          <TableActions {...tableActionProps(record)} />
+        ),
+        width: 80,
       },
     ],
     [clickedRowIndex],
@@ -167,13 +194,23 @@ export const OfficeTable = () => {
   }, [])
 
   return (
-    <Table
-      columns={columns}
-      dataSource={data}
-      pagination={pagination}
-      onChange={handleTableChange}
-      onRow={onRow}
-      rowSelection={rowSelection}
-    />
+    <Wrapper>
+      <Button
+        onClick={() => navigate('/offices/new')}
+        style={{ marginBottom: '10px' }}
+      >
+        Create New Office
+      </Button>
+      <Table
+        columns={columns}
+        dataSource={data}
+        pagination={pagination}
+        onChange={handleTableChange}
+        onRow={onRow}
+        rowSelection={rowSelection}
+      />
+    </Wrapper>
   )
 }
+
+const Wrapper = styled.div``

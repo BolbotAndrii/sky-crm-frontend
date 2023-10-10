@@ -25,12 +25,22 @@ export const PrivateRouter = () => {
         isAccess: true,
       },
       {
+        path: RoutesPath.OFFICE,
+        title: 'Office',
+        exact: true,
+        element: lazyWithRetry(
+          () => import('../pages/OfficeFormPage/OfficeFormPage'),
+        ),
+        isAccess: true,
+      },
+      {
         path: RoutesPath.OFFICES,
         title: 'Offices',
         exact: true,
         element: lazyWithRetry(() => import('../pages/OfficePage/OfficePage')),
         isAccess: true,
       },
+
       {
         path: RoutesPath.TEAM,
         title: 'Team',
