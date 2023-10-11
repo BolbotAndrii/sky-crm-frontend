@@ -1,15 +1,13 @@
-import React, { FC, useState } from 'react'
-
-import { Button, Form, Input, Select, TimePicker } from 'antd'
+import React, { FC, useEffect, useState } from 'react'
+import { createOffice, updateOffice } from 'api/office'
+import { Button, Form, Input, Select } from 'antd'
+import TimePicker from 'components/TimePicker/TimePicker'
 import styled from 'styled-components'
+import { useOffice } from 'features/Office/hooks/useOffice'
+import { useNavigate } from 'react-router-dom'
+import moment from 'moment-timezone'
 
 const { Option } = Select
-
-interface DataNodeType {
-  value: string
-  label: string
-  children?: DataNodeType[]
-}
 
 const formItemLayout = {
   labelCol: {
@@ -41,10 +39,41 @@ interface IProps {
 
 export const MainForm: FC<IProps> = ({ companyId }) => {
   const [form] = Form.useForm()
+  const navigate = useNavigate()
+  const { office, error, loading } = useOffice(companyId)
 
-  const onFinish = (values: any) => {
-    console.log('Received values of form: ', values)
+  const [data, setData] = useState({})
+
+  const onFinish = async (values: any) => {
+    try {
+      await form.validateFields()
+      if (office.id) {
+        const res = await updateOffice(values, { officeId: office.id })
+        setData(res)
+        return
+      }
+
+      const res = await createOffice(values)
+      setData(res)
+      navigate(`/offices/${res.id}`)
+    } catch (errorInfo) {
+      return false
+    }
   }
+
+  useEffect(() => {
+    if (office?.id) {
+      const data = {
+        ...office,
+        time_cards: {
+          time_end: moment(office.time_cards?.time_end || moment()),
+          time_start: moment(office.time_cards?.time_start || moment()),
+        },
+      }
+      form.setFieldsValue(data)
+      setData(data)
+    }
+  }, [office])
 
   return (
     <Wrapper>
@@ -56,6 +85,7 @@ export const MainForm: FC<IProps> = ({ companyId }) => {
         onFinish={onFinish}
         style={{ maxWidth: 600 }}
         scrollToFirstError
+        initialValues={data}
       >
         <Form.Item
           name='status'
@@ -81,14 +111,6 @@ export const MainForm: FC<IProps> = ({ companyId }) => {
           ]}
         >
           <Input />
-        </Form.Item>
-
-        <Form.Item
-          name='description'
-          label='Description'
-          rules={[{ required: true, message: 'Please input description' }]}
-        >
-          <Input.TextArea showCount maxLength={1000} />
         </Form.Item>
 
         <Form.Item
@@ -128,6 +150,14 @@ export const MainForm: FC<IProps> = ({ companyId }) => {
           ]}
         >
           <TimePicker style={{ width: '100%' }} />
+        </Form.Item>
+
+        <Form.Item
+          name='description'
+          label='Description'
+          rules={[{ required: true, message: 'Please input description' }]}
+        >
+          <Input.TextArea showCount maxLength={1000} />
         </Form.Item>
 
         <Form.Item {...tailFormItemLayout}>

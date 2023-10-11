@@ -8,6 +8,15 @@ import { Builder } from 'Builder'
 import CacheBuster from 'services/CasheBuster/CasheBuster'
 import { PersistGate } from 'redux-persist/integration/react'
 import './styles/index.scss'
+import moment from 'moment-timezone'
+import 'moment/locale/ru'
+
+import dayjs from 'dayjs'
+import localizedFormat from 'dayjs/plugin/localizedFormat'
+
+dayjs.extend(localizedFormat)
+
+moment.locale('ua')
 
 export const App = () => {
   return (

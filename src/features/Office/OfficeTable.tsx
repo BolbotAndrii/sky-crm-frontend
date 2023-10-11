@@ -77,7 +77,7 @@ export const OfficeTable = () => {
 
   const tableActionProps = (record: IOffice) => ({
     todos: ['delete', 'edit'],
-    callbacks: [() => null, () => null],
+    callbacks: [() => null, () => navigate(`/offices/${record.id}`)],
 
     disabled: [false, false, true],
     tooltips: ['Remove this office?', 'Open this office in the new tab?'],
@@ -127,7 +127,11 @@ export const OfficeTable = () => {
         title: renderTitle('Time of Work'),
         dataIndex: 'time_cards',
         sorter: true,
-        render: time => <p>{`${time.time_start}:${time.time_end}`}</p>,
+        render: time => (
+          <p>{`${moment(time.time_start).format('HH:MM')}-${moment(
+            time.time_end,
+          ).format('HH:mm')}`}</p>
+        ),
         width: 200,
       },
       {

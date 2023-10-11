@@ -8,9 +8,6 @@ import { useParams } from 'react-router-dom'
 
 export const OfficeForm = () => {
   const { id: companyId } = useParams()
-  const onChange = (key: string) => {
-    console.log(key)
-  }
 
   const items: TabsProps['items'] = [
     {
@@ -31,5 +28,5 @@ export const OfficeForm = () => {
       //disabled: companyId === 'new',
     },
   ]
-  return <Tabs defaultActiveKey='1' items={items} onChange={onChange} />
+  return <Tabs defaultActiveKey='1' items={items} />
 }

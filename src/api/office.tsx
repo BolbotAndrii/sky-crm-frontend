@@ -5,7 +5,11 @@ import { AxiosResponse } from 'axios'
 import { IOffice } from 'types/Office'
 
 enum OfficeEnum {
+  GET = 'office/offices-list',
   GET_LIST = 'office/full-list',
+  CREATE_OFFICE = 'office/create',
+  CREATE_UPDATE = 'office/update',
+  GET_OFFICE_BY_ID = 'office/office',
 }
 
 interface OfficeData {
@@ -21,5 +25,29 @@ interface OfficeData {
 export const getOfficeList = (params: any): Promise<OfficeData> => {
   return axiosBaseQuery
     .get(OfficeEnum.GET_LIST, { params })
+    .then((response: AxiosResponse<OfficeData>) => response.data)
+}
+
+export const getOffices = (): Promise<null> => {
+  return axiosBaseQuery
+    .get(OfficeEnum.GET)
+    .then((response: AxiosResponse<OfficeData['data']>) => response.data)
+}
+
+export const getOfficeById = (params: any): Promise<OfficeData> => {
+  return axiosBaseQuery
+    .get(OfficeEnum.GET_OFFICE_BY_ID, { params })
+    .then((response: AxiosResponse<OfficeData>) => response.data)
+}
+
+export const createOffice = (data: any): Promise<OfficeData> => {
+  return axiosBaseQuery
+    .post(OfficeEnum.CREATE_OFFICE, data)
+    .then((response: AxiosResponse<OfficeData>) => response.data)
+}
+
+export const updateOffice = (data: any, params): Promise<OfficeData> => {
+  return axiosBaseQuery
+    .put(OfficeEnum.CREATE_UPDATE, data, { params })
     .then((response: AxiosResponse<OfficeData>) => response.data)
 }

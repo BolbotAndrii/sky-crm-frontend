@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 
 import { Tooltip, Modal } from 'antd'
-
+import { FilterDropdownProps } from 'antd/es/table/interface'
 import { Table } from 'components/Table/Table'
 
 import { PaginationConfig } from 'antd/lib/pagination'
@@ -14,16 +14,42 @@ import { useDispatch } from 'react-redux'
 import { getLeadsList, deleteLead, updateLead } from 'api/leads'
 import { ILead } from 'types/Lead'
 import moment from 'moment-timezone'
-import { STATUS_TITLE, STATUS_COLOR } from './types'
+import { STATUS_TITLE, STATUS_COLOR, STATUS } from './types'
 import styled from 'styled-components'
 import { TableActions } from 'components/TableActions/TableActions'
 import { LeadForm } from './LeadForm/LeadForm'
+import { SearchFilter } from 'components/Table/components/SearchFilter'
+import { DateRangeFilter } from 'components/Table/components/DateRangeFilter'
+import { useOffice } from 'hooks/useOffices'
 
 const linkStyle = {
   color: '#1890ff',
   textDecoration: 'underline',
   cursor: 'pointer',
 }
+
+const statusFilter = [
+  {
+    text: 'NEW',
+    value: STATUS.NEW,
+  },
+  {
+    text: 'DUPLICATE',
+    value: STATUS.DUPLICATE,
+  },
+  {
+    text: 'NOT SENT',
+    value: STATUS.NOT_SEND,
+  },
+  {
+    text: 'SUCCESS',
+    value: STATUS.SUCCESS,
+  },
+  {
+    text: 'TRASH',
+    value: STATUS.TRASH,
+  },
+]
 
 const initialState = {
   first_name: '',
@@ -79,6 +105,7 @@ const renderStatus = statusObj => {
 
 export const LeadsTable = () => {
   const dispatch = useDispatch()
+  const { office } = useOffice()
   const [data, setData] = useState<ILead[]>([])
   const [lead, setLead] = useState<ILead>(initialState)
   const [loading, setLoading] = useState(false)
@@ -179,18 +206,27 @@ export const LeadsTable = () => {
         dataIndex: 'first_name',
         sorter: true,
         width: 200,
+        filterDropdown: (props: FilterDropdownProps) => (
+          <SearchFilter title='First Name' {...props} />
+        ),
       },
       {
         title: renderTitle('Last Name'),
         dataIndex: 'last_name',
         sorter: true,
         width: 200,
+        filterDropdown: (props: FilterDropdownProps) => (
+          <SearchFilter title='Last Name' {...props} />
+        ),
       },
       {
         title: renderTitle('Phone'),
         dataIndex: 'phone',
         sorter: true,
         width: 200,
+        filterDropdown: (props: FilterDropdownProps) => (
+          <SearchFilter title='Phone' {...props} />
+        ),
       },
       {
         title: renderTitle('Phone Code'),
@@ -203,6 +239,9 @@ export const LeadsTable = () => {
         dataIndex: 'email',
         sorter: true,
         width: 200,
+        filterDropdown: (props: FilterDropdownProps) => (
+          <SearchFilter title='Email' {...props} />
+        ),
       },
       {
         title: renderTitle('Country'),
@@ -214,13 +253,16 @@ export const LeadsTable = () => {
         title: renderTitle('Country Code'),
         dataIndex: 'country_code',
         sorter: true,
-        width: 80,
+        width: 120,
       },
       {
         title: renderTitle('Domain'),
         dataIndex: 'domain',
         sorter: true,
         width: 200,
+        filterDropdown: (props: FilterDropdownProps) => (
+          <SearchFilter title='Email' {...props} />
+        ),
       },
       {
         title: renderTitle('Language'),
@@ -239,27 +281,27 @@ export const LeadsTable = () => {
         dataIndex: 'offer',
         sorter: true,
         width: 200,
+        filterDropdown: (props: FilterDropdownProps) => (
+          <SearchFilter title='Email' {...props} />
+        ),
       },
       {
         title: renderTitle('Affilate'),
         dataIndex: 'affilate',
         sorter: true,
         width: 200,
+        filters: office?.map(item => ({ value: item.id, text: item.title })),
       },
 
       {
-        title: renderTitle('Internal Status'),
-        dataIndex: 'status',
+        title: renderTitle('Status'),
+        dataIndex: 'current_status',
         sorter: true,
         width: 150,
         render: renderStatus,
+        filters: statusFilter,
       },
-      {
-        title: renderTitle('Office Status'),
-        dataIndex: 'status',
-        sorter: true,
-        width: 150,
-      },
+
       {
         title: renderTitle('Click ID'),
         dataIndex: 'click_id',
@@ -277,6 +319,9 @@ export const LeadsTable = () => {
         dataIndex: 'buyer',
         sorter: true,
         width: 150,
+        filterDropdown: (props: FilterDropdownProps) => (
+          <SearchFilter title='Email' {...props} />
+        ),
       },
       {
         title: renderTitle('Account'),
@@ -333,6 +378,9 @@ export const LeadsTable = () => {
         sorter: true,
         width: 150,
         render: data => moment(data).format('DD/MM/YYYY HH:mm'),
+        filterDropdown: (props: FilterDropdownProps) => (
+          <DateRangeFilter {...props} />
+        ),
       },
       {
         title: renderTitle('Updated_at'),
@@ -340,6 +388,9 @@ export const LeadsTable = () => {
         sorter: true,
         width: 150,
         render: data => moment(data).format('DD/MM/YYYY HH:mm'),
+        filterDropdown: (props: FilterDropdownProps) => (
+          <DateRangeFilter {...props} />
+        ),
       },
       {
         title: renderTitle('Actions'),
@@ -352,8 +403,10 @@ export const LeadsTable = () => {
         ),
       },
     ],
-    [clickedRowIndex],
+    [clickedRowIndex, office],
   )
+
+  console.log(office, 'office')
 
   const onRow = (record: any, rowIndex: number) => ({
     onClick: () => {
