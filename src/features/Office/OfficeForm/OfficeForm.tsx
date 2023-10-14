@@ -19,13 +19,13 @@ export const OfficeForm = () => {
       key: '2',
       label: 'Integration',
       children: <IntegrationForm companyId={companyId} />,
-      //disabled: companyId === 'new',
+      disabled: companyId === 'new',
     },
     {
       key: '3',
       label: 'Presets',
       children: <LeadSetupForm companyId={companyId} />,
-      //disabled: companyId === 'new',
+      disabled: companyId === 'new',
     },
   ]
   return <Tabs defaultActiveKey='1' items={items} />

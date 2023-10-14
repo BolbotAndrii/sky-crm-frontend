@@ -10,6 +10,8 @@ enum OfficeEnum {
   CREATE_OFFICE = 'office/create',
   CREATE_UPDATE = 'office/update',
   GET_OFFICE_BY_ID = 'office/office',
+  GET_INTEGRA_BY_OFFICE_ID = 'office/integration/get-by-office-id',
+  ADD_INTEGRATION = 'office/integration/add',
 }
 
 interface OfficeData {
@@ -49,5 +51,17 @@ export const createOffice = (data: any): Promise<OfficeData> => {
 export const updateOffice = (data: any, params): Promise<OfficeData> => {
   return axiosBaseQuery
     .put(OfficeEnum.CREATE_UPDATE, data, { params })
+    .then((response: AxiosResponse<OfficeData>) => response.data)
+}
+
+export const createOfficeItegration = (data: any): Promise<OfficeData> => {
+  return axiosBaseQuery
+    .post(OfficeEnum.ADD_INTEGRATION, data)
+    .then((response: AxiosResponse<OfficeData>) => response.data)
+}
+
+export const getOfficeItegrationById = (params): Promise<OfficeData> => {
+  return axiosBaseQuery
+    .get(OfficeEnum.GET_INTEGRA_BY_OFFICE_ID, { params })
     .then((response: AxiosResponse<OfficeData>) => response.data)
 }
