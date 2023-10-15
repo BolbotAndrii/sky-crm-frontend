@@ -8,8 +8,8 @@ import {
   DragOutlined,
 } from '@ant-design/icons'
 import { Button, Form, Input, Space, Select, Divider, notification } from 'antd'
-import { generateVariables } from 'features/Office/utils'
-import { createOfficeItegration } from 'api/office'
+import { generateVariables, arrayToObject } from 'features/Office/utils'
+import { createOfficeItegration, updateOfficeItegration } from 'api/office'
 import { useIntegration } from 'hooks/useIntegration'
 
 const Variable = ({ label, value, onDragStart }) => {
@@ -47,9 +47,9 @@ export const SendLead: FC<IProps> = ({ companyId }) => {
     method: '',
     content_type: '',
   })
-  const [responce, setResponce] = useState({ responce: {} })
-  const [header, setHeader] = useState({ header: {} })
-  const [body, setBody] = useState({ body: {} })
+  const [responce, setResponce] = useState({})
+  const [header, setHeader] = useState({})
+  const [body, setBody] = useState({})
   const [inputType, setInputType] = useState('select')
   const [draggedItem, setDraggedItem] = useState(null)
 
@@ -71,14 +71,14 @@ export const SendLead: FC<IProps> = ({ companyId }) => {
     }))
   }
   const handleChangeHeader = () => {
-    setHeader(headerForm.getFieldsValue())
+    setHeader(headerForm.getFieldsValue()?.header)
   }
   const handleChangeBody = e => {
     setBody(JSON.parse(e.target.value))
   }
 
   const handleChangeResponce = () => {
-    setResponce(responceForm.getFieldsValue())
+    setResponce(responceForm.getFieldsValue()?.responce)
   }
 
   const handleDrop = data => {
@@ -100,14 +100,14 @@ export const SendLead: FC<IProps> = ({ companyId }) => {
       active: true,
     }
 
-    const headers = header
+    const headers = arrayToObject(header)
     const template = body
     const response = responce
-    const options = options
+    const opt = options
 
     const data = {
       office_data,
-      options,
+      options: opt,
       headers,
       template,
       response,
@@ -116,6 +116,34 @@ export const SendLead: FC<IProps> = ({ companyId }) => {
     try {
       await createOfficeItegration(data)
       notification.success({ message: 'Integration was created successfully!' })
+    } catch (error) {
+      notification.error({ message: 'Something went wrong!' })
+      console.log(error)
+    }
+  }
+
+  const onUpdate = async () => {
+    const office_data = {
+      office_id: companyId,
+      active: true,
+    }
+
+    const headers = arrayToObject(header)
+    const template = body
+    const response = arrayToObject(responce)
+    const headerOptions = arrayToObject(options)
+
+    const data = {
+      office_data,
+      options: headerOptions,
+      headers,
+      template,
+      response,
+    }
+
+    try {
+      await updateOfficeItegration(data, { integrationId: integration.id })
+      notification.success({ message: 'Integration was update successfully!' })
     } catch (error) {
       notification.error({ message: 'Something went wrong!' })
       console.log(error)
@@ -190,7 +218,7 @@ export const SendLead: FC<IProps> = ({ companyId }) => {
             />
           </div>
           <div>
-            <CodeEditor code={options} onChange={() => null} />
+            <CodeEditor disabled={true} code={options} onChange={() => null} />
           </div>
         </BlockInner>
       </Block>
@@ -253,7 +281,11 @@ export const SendLead: FC<IProps> = ({ companyId }) => {
             </Form>
           </div>
           <div>
-            <CodeEditor code={header} onChange={() => null} />
+            <CodeEditor
+              disabled={true}
+              code={arrayToObject(header)}
+              onChange={() => null}
+            />
           </div>
         </BlockInner>
       </Block>
@@ -342,14 +374,18 @@ export const SendLead: FC<IProps> = ({ companyId }) => {
             </Form>
           </div>
           <div>
-            <CodeEditor code={responce} onChange={() => null} />
+            <CodeEditor
+              disabled={true}
+              code={arrayToObject(responce)}
+              onChange={() => null}
+            />
           </div>
         </BlockInner>
       </Block>
       {!integration?.id ? (
         <Button onClick={onSubmit}>Create</Button>
       ) : (
-        <Button onClick={onSubmit}>Update</Button>
+        <Button onClick={onUpdate}>Update</Button>
       )}
     </Wrapper>
   )

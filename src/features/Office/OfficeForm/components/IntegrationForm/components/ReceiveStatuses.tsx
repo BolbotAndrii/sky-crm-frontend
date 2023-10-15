@@ -1,11 +1,31 @@
-import React, { ChangeEvent, FC, useState } from 'react'
+import React, { ChangeEvent, FC, useEffect, useState } from 'react'
 import styled from 'styled-components'
 
 import { CodeEditor } from './CodeEditor'
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Form, Input, Space, Select, Divider } from 'antd'
+import {
+  MinusCircleOutlined,
+  PlusOutlined,
+  DragOutlined,
+} from '@ant-design/icons'
+import { Button, Form, Input, Space, Select, Divider, notification } from 'antd'
 import { generateVariables, arrayToObject } from 'features/Office/utils'
-import jsonFormat from 'json-format'
+import { createOfficeItegration, updateOfficeItegration } from 'api/office'
+import { useIntegration } from 'hooks/useIntegration'
+
+const Variable = ({ label, value, onDragStart }) => {
+  return (
+    <Button
+      draggable='true'
+      style={{ cursor: 'pointer' }}
+      onDragStart={onDragStart}
+      onClick={e => {
+        e.preventDefault()
+        e.stopPropagation()
+      }}
+      icon={<DragOutlined />}
+    >{`[${label}]`}</Button>
+  )
+}
 
 const onFinish = (values: any) => {
   console.log('Received values of form:', values)
@@ -18,19 +38,26 @@ interface IProps {
 const selectOptions = generateVariables()
 
 export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
+  const { integration } = useIntegration(companyId)
   const [headerForm] = Form.useForm()
-  const [bodyForm] = Form.useForm()
+
   const [responceForm] = Form.useForm()
   const [options, setOptions] = useState({
-    options: {
-      url: '',
-      method: '',
-    },
+    url: '',
+    method: '',
+    content_type: '',
   })
-  const [responce, setResponce] = useState({ responce: {} })
-  const [header, setHeader] = useState({ header: {} })
-  const [body, setBody] = useState({ body: {} })
+  const [responce, setResponce] = useState({})
+  const [header, setHeader] = useState({})
+  const [body, setBody] = useState({})
   const [inputType, setInputType] = useState('select')
+  const [draggedItem, setDraggedItem] = useState(null)
+
+  const handleDragStart = (e, item) => {
+    e.stopPropagation()
+    e.dataTransfer.setData('text/plain', JSON.stringify(item))
+    setDraggedItem(item)
+  }
 
   const handleChangeInputType = (type: 'select' | 'input') => {
     setInputType(type)
@@ -40,19 +67,111 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
     const { name, value } = e.target
     setOptions(prev => ({
       ...prev,
-      options: { ...prev.options, [name]: value },
+      [name]: value,
     }))
   }
   const handleChangeHeader = () => {
-    setHeader(headerForm.getFieldsValue())
+    setHeader(headerForm.getFieldsValue()?.header)
   }
-  const handleChangeBody = () => {
-    setBody(bodyForm.getFieldsValue())
+  const handleChangeBody = e => {
+    setBody(JSON.parse(e.target.value))
   }
 
   const handleChangeResponce = () => {
-    setResponce(responceForm.getFieldsValue())
+    setResponce(responceForm.getFieldsValue()?.responce)
   }
+
+  const handleDrop = data => {
+    setBody(currentCode => {
+      const droppedItem = JSON.parse(data)
+
+      const updatedCode = {
+        ...currentCode,
+        [droppedItem.label]: droppedItem.value,
+      }
+
+      return updatedCode
+    })
+  }
+
+  const onSubmit = async () => {
+    const office_data = {
+      office_id: companyId,
+      active: true,
+    }
+
+    const headers = header
+    const template = body
+    const response = responce
+    const options = options
+
+    const data = {
+      office_data,
+      options,
+      headers,
+      template,
+      response,
+    }
+
+    try {
+      await createOfficeItegration(data)
+      notification.success({ message: 'Integration was created successfully!' })
+    } catch (error) {
+      notification.error({ message: 'Something went wrong!' })
+      console.log(error)
+    }
+  }
+
+  const onUpdate = async () => {
+    const office_data = {
+      office_id: companyId,
+      active: true,
+    }
+
+    const headers = arrayToObject(header)
+    const template = body
+    const response = arrayToObject(responce)
+    const headerOptions = arrayToObject(options)
+
+    const data = {
+      office_data,
+      options: headerOptions,
+      headers,
+      template,
+      response,
+    }
+
+    try {
+      await updateOfficeItegration(data, { integrationId: integration.id })
+      notification.success({ message: 'Integration was update successfully!' })
+    } catch (error) {
+      notification.error({ message: 'Something went wrong!' })
+      console.log(error)
+    }
+  }
+
+  function transformDataForForm(inputData) {
+    const data = Object.keys(inputData).map(key => ({
+      name: key,
+      value: inputData[key],
+    }))
+    return data
+  }
+
+  useEffect(() => {
+    if (integration?.id) {
+      setOptions(integration.options)
+      setHeader(integration.headers)
+      setBody(integration.template)
+      setResponce(integration.response)
+      headerForm.setFieldsValue({
+        header: transformDataForForm(integration.headers),
+      })
+      responceForm.setFieldsValue({
+        responce: transformDataForForm(integration.response),
+      })
+    }
+  }, [integration?.id])
 
   return (
     <Wrapper>
@@ -66,6 +185,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
               name='url'
               style={{ marginBottom: '20px' }}
               placeholder='URL'
+              value={options.url}
             />
             <Select
               onChange={value =>
@@ -77,20 +197,28 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
                 { label: 'PUT', value: 'put' },
                 { label: 'GET', value: 'get' },
               ]}
+              style={{ marginBottom: '20px' }}
+              value={options.method}
+            />
+            <Select
+              onChange={value =>
+                handleChangeOptions({ target: { value, name: 'content_type' } })
+              }
+              placeholder='Content-Type'
+              value={options.content_type}
+              options={[
+                { label: 'form-data', value: 'form-data' },
+                {
+                  label: 'x-www-form-urlencoded',
+                  value: 'x-www-form-urlencoded',
+                },
+                { label: 'raw', value: 'raw' },
+                { label: 'params', value: 'params' },
+              ]}
             />
           </div>
           <div>
-            {' '}
-            <CodeEditor
-              code={jsonFormat(
-                { options: options.options },
-                {
-                  type: 'space',
-                  size: 2,
-                },
-              )}
-              onChange={() => null}
-            />
+            <CodeEditor disabled={true} code={options} onChange={() => null} />
           </div>
         </BlockInner>
       </Block>
@@ -119,7 +247,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
                       >
                         <Form.Item
                           {...restField}
-                          name={[name, 'key']}
+                          name={[name, 'name']}
                           rules={[{ required: true, message: 'Missing key' }]}
                         >
                           <Input placeholder='Key' />
@@ -129,30 +257,12 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
                           name={[name, 'value']}
                           rules={[{ required: true, message: 'Missing value' }]}
                         >
-                          {inputType === 'select' ? (
-                            <Select
-                              placeholder='Value'
-                              options={selectOptions}
-                            />
-                          ) : (
-                            <Input placeholder='Value' />
-                          )}
+                          <Input placeholder='Value' />
                         </Form.Item>
                         <MinusCircleOutlined onClick={() => remove(name)} />
                       </Space>
                     ))}
-                    <Button
-                      type='dashed'
-                      style={{ marginBottom: '10px' }}
-                      onClick={() => {
-                        add()
-                        handleChangeInputType('select')
-                      }}
-                      block
-                      icon={<PlusOutlined />}
-                    >
-                      Add select field
-                    </Button>
+
                     <Button
                       type='dashed'
                       onClick={() => {
@@ -172,13 +282,8 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
           </div>
           <div>
             <CodeEditor
-              code={jsonFormat(
-                { headers: arrayToObject(header.header) },
-                {
-                  type: 'space',
-                  size: 2,
-                },
-              )}
+              disabled={true}
+              code={arrayToObject(header)}
               onChange={() => null}
             />
           </div>
@@ -189,94 +294,22 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
         <BlockTitle>Request Body</BlockTitle>
         <BlockInner>
           <div>
-            {' '}
-            <Form
-              name='body'
-              onFinish={onFinish}
-              style={{ maxWidth: 600 }}
-              autoComplete='off'
-              onFieldsChange={handleChangeBody}
-              form={bodyForm}
-            >
-              <Form.List name='body'>
-                {(fields, { add, remove }) => (
-                  <>
-                    {fields.map(({ key, name, ...restField }) => (
-                      <Space
-                        key={key}
-                        style={{ display: 'flex', marginBottom: 8 }}
-                        align='baseline'
-                      >
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'key']}
-                          rules={[{ required: true, message: 'Missing key' }]}
-                        >
-                          <Input placeholder='Key' />
-                        </Form.Item>
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'value']}
-                          rules={[{ required: true, message: 'Missing value' }]}
-                        >
-                          {inputType === 'select' ? (
-                            <Select
-                              placeholder='Value'
-                              options={selectOptions}
-                            />
-                          ) : (
-                            <Input placeholder='Value' />
-                          )}
-                        </Form.Item>
-                        <MinusCircleOutlined onClick={() => remove(name)} />
-                      </Space>
-                    ))}
-                    <Form.Item>
-                      <Button
-                        type='dashed'
-                        style={{ marginBottom: '10px' }}
-                        onClick={() => {
-                          add()
-                          handleChangeInputType('select')
-                        }}
-                        block
-                        icon={<PlusOutlined />}
-                      >
-                        Add select field
-                      </Button>
-                      <Button
-                        type='dashed'
-                        onClick={() => {
-                          add()
-
-                          handleChangeInputType('input')
-                        }}
-                        block
-                        icon={<PlusOutlined />}
-                      >
-                        Add input field
-                      </Button>
-                    </Form.Item>
-                  </>
-                )}
-              </Form.List>
-              {/* <Form.Item>
-                <Button type='primary' htmlType='submit'>
-                  Submit
-                </Button>
-              </Form.Item> */}
-            </Form>
+            <VariableList>
+              {selectOptions.map(item => (
+                <Variable
+                  key={item.label}
+                  onDragStart={e => handleDragStart(e, item)}
+                  {...item}
+                />
+              ))}
+            </VariableList>
           </div>
           <div>
             <CodeEditor
-              code={jsonFormat(
-                { body: arrayToObject(body.body) },
-                {
-                  type: 'space',
-                  size: 2,
-                },
-              )}
-              onChange={() => null}
+              code={body}
+              onChange={handleChangeBody}
+              onDrop={handleDrop}
+              draggedItem={draggedItem}
             />
           </div>
         </BlockInner>
@@ -306,7 +339,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
                       >
                         <Form.Item
                           {...restField}
-                          name={[name, 'key']}
+                          name={[name, 'name']}
                           rules={[{ required: true, message: 'Missing key' }]}
                         >
                           <Input placeholder='Key' />
@@ -316,31 +349,12 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
                           name={[name, 'value']}
                           rules={[{ required: true, message: 'Missing value' }]}
                         >
-                          {inputType === 'select' ? (
-                            <Select
-                              placeholder='Value'
-                              options={selectOptions}
-                            />
-                          ) : (
-                            <Input placeholder='Value' />
-                          )}
+                          <Input placeholder='Value' />
                         </Form.Item>
                         <MinusCircleOutlined onClick={() => remove(name)} />
                       </Space>
                     ))}
                     <Form.Item>
-                      <Button
-                        type='dashed'
-                        style={{ marginBottom: '10px' }}
-                        onClick={() => {
-                          add()
-                          handleChangeInputType('select')
-                        }}
-                        block
-                        icon={<PlusOutlined />}
-                      >
-                        Add select field
-                      </Button>
                       <Button
                         type='dashed'
                         onClick={() => {
@@ -361,18 +375,18 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
           </div>
           <div>
             <CodeEditor
-              code={jsonFormat(
-                { responce: arrayToObject(responce.responce) },
-                {
-                  type: 'space',
-                  size: 2,
-                },
-              )}
+              disabled={true}
+              code={arrayToObject(responce)}
               onChange={() => null}
             />
           </div>
         </BlockInner>
       </Block>
+      {!integration?.id ? (
+        <Button onClick={onSubmit}>Create</Button>
+      ) : (
+        <Button onClick={onUpdate}>Update</Button>
+      )}
     </Wrapper>
   )
 }
@@ -392,3 +406,12 @@ const BlockInner = styled.div`
 const BlockTitle = styled.h2`
   margin-bottom: 20px;
 `
+
+const VariableList = styled.div`
+  display: flex;
+
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+`
+const VariableItem = styled.div``

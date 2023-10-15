@@ -1,24 +1,56 @@
 import React from 'react'
 import { CloseOutlined } from '@ant-design/icons'
-import { Button, Card, Form, Input, Space, Select, InputNumber } from 'antd'
+import {
+  Button,
+  Card,
+  Form,
+  Input,
+  Space,
+  Select,
+  InputNumber,
+  notification,
+} from 'antd'
 import { countryCodes } from 'utils/countryCodes'
+import { createGeo } from 'api/geo'
 
 const { Option } = Select
+
+const inintValue = {
+  country: ['UA'],
+  offer: 'offer',
+  priority: 1,
+  limits: 50,
+  current_count: 0,
+}
 
 interface IProps {
   companyId: string
 }
 export const LeadSetupForm: FC<IProps> = ({ companyId }) => {
   const [form] = Form.useForm()
+
+  const onSubmit = async values => {
+    try {
+      const data = form.getFieldsValue()
+      await form.validateFields()
+      console.log(values, data)
+      // const res = await createGeo(values)
+      notification.success({ message: 'GEO was created successfully!' })
+    } catch (error) {
+      console.log(error)
+      notification.error({ message: 'Something went wrong!' })
+    }
+  }
   return (
     <Form
       labelCol={{ span: 6 }}
       wrapperCol={{ span: 18 }}
       form={form}
-      name='dynamic_form_complex'
+      name='geos'
       style={{ maxWidth: 600 }}
       autoComplete='off'
-      initialValues={{ geos: [{}] }}
+      initialValues={{ items: [inintValue] }}
+      onFinish={onSubmit}
     >
       <Form.List name='items'>
         {(fields, { add, remove }) => (
@@ -46,7 +78,7 @@ export const LeadSetupForm: FC<IProps> = ({ companyId }) => {
                   label='Country'
                   name={[field.name, 'country']}
                 >
-                  <Select showSearch style={{ width: '100%' }}>
+                  <Select mode='multiple' showSearch style={{ width: '100%' }}>
                     {countryCodes.map(country => (
                       <Option key={country.dial_code} value={country.code}>
                         <div style={{ display: 'flex', gap: '4px' }}>
@@ -92,7 +124,7 @@ export const LeadSetupForm: FC<IProps> = ({ companyId }) => {
                   </Select>
                 </Form.Item>
                 <Form.Item
-                  name='limit'
+                  name={[field.name, 'limits']}
                   label='Leads Limit Per Day'
                   rules={[
                     {
@@ -112,6 +144,9 @@ export const LeadSetupForm: FC<IProps> = ({ companyId }) => {
           </div>
         )}
       </Form.List>
+      <Button onClick={onSubmit} block>
+        Create
+      </Button>
     </Form>
   )
 }

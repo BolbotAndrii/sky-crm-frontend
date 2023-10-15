@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from 'react'
 import { createOffice, updateOffice } from 'api/office'
-import { Button, Form, Input, Select } from 'antd'
+import { Button, Form, Input, Select, notification } from 'antd'
 import TimePicker from 'components/TimePicker/TimePicker'
 import styled from 'styled-components'
 import { useOffice } from 'features/Office/hooks/useOffice'
@@ -50,16 +50,24 @@ export const MainForm: FC<IProps> = ({ companyId }) => {
       if (office.id) {
         const res = await updateOffice(values, { officeId: office.id })
         setData(res)
+        notification.success({ message: 'Office was updated successfully!' })
         return
       }
 
       const res = await createOffice(values)
       setData(res)
       navigate(`/offices/${res.id}`)
+      notification.success({ message: 'Office was created successfully!' })
     } catch (errorInfo) {
       return false
     }
   }
+
+  useEffect(() => {
+    if (error) {
+      notification.error({ message: 'Something went wrong!' })
+    }
+  }, [])
 
   useEffect(() => {
     if (office?.id) {

@@ -42,12 +42,14 @@ export const generateVariables = () => {
 }
 
 export const arrayToObject = (array: []) => {
+  if (!Array.isArray(array)) return array
+
   const resultObject = {}
 
   if (Array.isArray(array)) {
     array?.forEach(item => {
-      const key = item?.key || 'key'
-      const value = item?.value || 'value'
+      const key = item?.name || ''
+      const value = item?.value || ''
       resultObject[key] = value
     })
   }

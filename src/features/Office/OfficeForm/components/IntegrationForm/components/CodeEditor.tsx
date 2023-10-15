@@ -10,38 +10,39 @@ export const CodeEditor: FC<IProps> = ({
   onChange,
   onDrop,
   draggedItem,
+  disabled,
 }) => {
-  const editorRef = useRef()
+  // const editorRef = useRef()
 
-  const handleDrop = (e, data) => {
-    e.preventDefault()
+  // const handleDrop = (e, data) => {
+  //   e.preventDefault()
 
-    const editor = editorRef.current
-    editor.focus()
+  //   const editor = editorRef.current
+  //   editor.focus()
 
-    const droppedItem = draggedItem
+  //   const droppedItem = draggedItem
 
-    const startPos = editor.selectionStart
-    const endPos = editor.selectionEnd
+  //   const startPos = editor.selectionStart
+  //   const endPos = editor.selectionEnd
 
-    const oldCode = jsonFormat(code, { type: 'space', size: 2 })
+  //   const oldCode = jsonFormat(code, { type: 'space', size: 2 })
 
-    const label = JSON.stringify(droppedItem.label)
+  //   const label = JSON.stringify(droppedItem.label)
 
-    const newCode =
-      oldCode.substring(0, startPos) + `[${label}]` + oldCode.substring(endPos)
+  //   const newCode =
+  //     oldCode.substring(0, startPos) + `[${label}]` + oldCode.substring(endPos)
 
-    onChange({ target: { value: newCode } })
-  }
+  //   onChange({ target: { value: newCode } })
+  // }
 
-  const allowDrop = e => {
-    e.preventDefault()
-  }
+  // const allowDrop = e => {
+  //   e.preventDefault()
+  // }
 
-  const handleDragStart = e => {
-    editorRef.current.focus()
-    e.preventDefault()
-  }
+  // const handleDragStart = e => {
+  //   editorRef.current.focus()
+  //   e.preventDefault()
+  // }
 
   return (
     <>
@@ -53,13 +54,14 @@ export const CodeEditor: FC<IProps> = ({
         language='json'
         placeholder='Please enter code.'
         onChange={onChange}
-        onDragStart={handleDragStart}
+        // onDragStart={handleDragStart}
         data-color-mode='dark'
-        onDrop={handleDrop}
-        onDragOver={allowDrop}
-        ref={editorRef}
+        // onDrop={handleDrop}
+        // onDragOver={allowDrop}
+        // ref={editorRef}
         padding={15}
         minHeight={200}
+        disabled={disabled}
         style={{
           fontSize: 12,
           borderRadius: '10px',
