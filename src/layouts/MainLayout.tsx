@@ -44,6 +44,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const dispatch = useDispatch()
   const appTheme = useAppSelector(state => state.ui.theme)
   const loading = useAppSelector(state => state.ui.loading)
+  const authUser = useAppSelector(state => state.auth.user)
   const [collapsed, setCollapsed] = useState(false)
   const {
     token: { colorBgContainer },
@@ -110,8 +111,12 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
         <Dropdown trigger={['hover']} menu={{ items: itemsDropdown }}>
           <a onClick={e => e.preventDefault()}>
             <AvatarContainer>
-              <Avatar color={'#1668dc'}>Max Kovalenko</Avatar>
-              {!collapsed && <Typography.Text>Max Kovalenko</Typography.Text>}
+              <Avatar
+                color={'#1668dc'}
+              >{`${authUser.first_name} ${authUser.last_name}`}</Avatar>
+              {!collapsed && (
+                <Typography.Text>{`${authUser.first_name} ${authUser.last_name}`}</Typography.Text>
+              )}
             </AvatarContainer>
           </a>
         </Dropdown>

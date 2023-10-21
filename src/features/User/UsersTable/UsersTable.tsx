@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 
-import { Tooltip } from 'antd'
+import { Tooltip, message, Button } from 'antd'
 
 import { Table } from 'components/Table/Table'
 
@@ -11,7 +11,7 @@ import { SorterResult } from 'antd/lib/table/interface'
 import { ColumnProps } from 'antd/lib/table'
 import { toggleLoading } from 'store/ui/UISlice'
 import { useDispatch } from 'react-redux'
-import { getUsersList } from 'api/users'
+import { getUsersList, deleteUser } from 'api/users'
 import { IUser } from 'types/User'
 import moment from 'moment-timezone'
 import { DATE_FORMAT } from 'constants/dateFormat'
@@ -19,6 +19,7 @@ import { Avatar } from 'components/Avatar/Avatar'
 import { renderUserStatus, renderUserRole, renderUserColor } from 'helpers/user'
 import { useNavigate } from 'react-router-dom'
 import { RoutesPath } from 'routes/types'
+import { TableActions } from 'components/TableActions/TableActions'
 
 const linkStyle = {
   color: '#1890ff',
@@ -61,6 +62,16 @@ export const UsersTable = () => {
     }
   }
 
+  const handleDeleteUser = async userId => {
+    try {
+      await deleteUser({ userId })
+      setData(prev => prev.filter(user => user.id !== userId))
+      message.success('User was deleted!')
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   const handleTableChange = (
     pagination: PaginationConfig,
     filters: Partial<Record<keyof IUser, string[]>>,
@@ -79,6 +90,18 @@ export const UsersTable = () => {
       ...filters,
     })
   }
+
+  const tableActionProps = (record: IUser) => ({
+    todos: ['delete', 'edit'],
+    callbacks: [
+      () => handleDeleteUser(record.id),
+      () => navigate(`${RoutesPath.TEAM}/${record.id}`),
+    ],
+
+    disabled: [false, false, true],
+    tooltips: ['Remove this user?', 'Open this lead in the new tab?'],
+    popConfirms: ['Are you sure that you want to delete this user?'],
+  })
 
   const columns: ColumnProps<IUser>[] = useMemo(
     () => [
@@ -179,6 +202,17 @@ export const UsersTable = () => {
         width: 200,
         render: data => moment(data).format(DATE_FORMAT),
       },
+      {
+        title: renderTitle('Actions'),
+        name: 'Actions',
+        dataIndex: 'actions',
+        align: 'center',
+        width: 150,
+        fixed: 'right',
+        render: (value, record) => (
+          <TableActions {...tableActionProps(record)} />
+        ),
+      },
     ],
     [clickedRowIndex],
   )
@@ -198,12 +232,20 @@ export const UsersTable = () => {
   }, [])
 
   return (
-    <Table
-      columns={columns}
-      dataSource={data}
-      pagination={pagination}
-      onChange={handleTableChange}
-      onRow={onRow}
-    />
+    <>
+      <Button
+        style={{ marginBottom: '10px' }}
+        onClick={() => navigate(`${RoutesPath.TEAM}/new`)}
+      >
+        Create New
+      </Button>
+      <Table
+        columns={columns}
+        dataSource={data}
+        pagination={pagination}
+        onChange={handleTableChange}
+        onRow={onRow}
+      />
+    </>
   )
 }

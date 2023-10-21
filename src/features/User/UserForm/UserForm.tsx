@@ -9,11 +9,12 @@ import {
   Row,
   Select,
   ColorPicker,
+  message,
 } from 'antd'
 import styled from 'styled-components'
 import { IUser, UserRole, UserStatus } from 'types/User'
 import { initialUser } from '../constants'
-import { createUser, getUserById } from 'api/users'
+import { createUser, getUserById, updateUser } from 'api/users'
 import { useNavigate, useParams } from 'react-router-dom'
 import { RoutesPath } from 'routes/types'
 
@@ -60,7 +61,13 @@ export const UserForm = () => {
 
   const onFinish = async (values: IUser) => {
     try {
+      if (user?.id) {
+        await updateUser(values, { userId: user?.id })
+        message.success('Was updated succesfully!')
+        return
+      }
       await createUser(values)
+      message.success('Was created succesfully!')
       navigate(RoutesPath.TEAM)
     } catch (error) {
       console.error(error)
@@ -86,6 +93,7 @@ export const UserForm = () => {
       try {
         const user = await getUserById({ userId: id })
         form.setFieldsValue(user)
+        setUser(user)
       } catch (error) {
         console.error(error)
       }
@@ -118,6 +126,7 @@ export const UserForm = () => {
           rules={[{ required: true, message: 'Please select role!' }]}
         >
           <Select placeholder='select user role'>
+            <Option value={UserRole.SUPER_ADMIN}>Super Admin</Option>
             <Option value={UserRole.OWNER}>Owner</Option>
             <Option value={UserRole.ADMIN}>Admin</Option>
             <Option value={UserRole.MANAGER}>Manager</Option>
@@ -139,7 +148,6 @@ export const UserForm = () => {
         <Form.Item
           name='first_name'
           label='First Name'
-          tooltip='What do you want others to call you?'
           rules={[
             {
               required: true,
@@ -153,7 +161,6 @@ export const UserForm = () => {
         <Form.Item
           name='last_name'
           label='Last Name'
-          tooltip='What do you want others to call you?'
           rules={[
             {
               required: true,
@@ -194,7 +201,6 @@ export const UserForm = () => {
         <Form.Item
           name='title'
           label='Title (Nickname)'
-          tooltip='What do you want others to call you?'
           rules={[
             {
               required: false,
@@ -213,48 +219,53 @@ export const UserForm = () => {
           <Input.TextArea showCount maxLength={100} />
         </Form.Item>
 
-        <Form.Item
-          name='password'
-          label='Password'
-          rules={[
-            {
-              required: true,
-              message: 'Please input your password!',
-            },
-          ]}
-          hasFeedback
-        >
-          <Input.Password />
-        </Form.Item>
-
-        <Form.Item
-          name='confirm'
-          label='Confirm Password'
-          dependencies={['password']}
-          hasFeedback
-          rules={[
-            {
-              required: true,
-              message: 'Please confirm your password!',
-            },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue('password') === value) {
-                  return Promise.resolve()
-                }
-                return Promise.reject(
-                  new Error('The new password that you entered do not match!'),
-                )
-              },
-            }),
-          ]}
-        >
-          <Input.Password />
-        </Form.Item>
+        {!user?.id && (
+          <>
+            {' '}
+            <Form.Item
+              name='password'
+              label='Password'
+              rules={[
+                {
+                  required: !user?.id,
+                  message: 'Please input your password!',
+                },
+              ]}
+              hasFeedback
+            >
+              <Input.Password />
+            </Form.Item>
+            <Form.Item
+              name='confirm'
+              label='Confirm Password'
+              dependencies={['password']}
+              hasFeedback
+              rules={[
+                {
+                  required: !user?.id,
+                  message: 'Please confirm your password!',
+                },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('password') === value) {
+                      return Promise.resolve()
+                    }
+                    return Promise.reject(
+                      new Error(
+                        'The new password that you entered do not match!',
+                      ),
+                    )
+                  },
+                }),
+              ]}
+            >
+              <Input.Password />
+            </Form.Item>
+          </>
+        )}
         <Form.Item
           name='user_identifier'
           label='User identifier'
-          tooltip='What do you want others to call you?'
           rules={[
             {
               required: true,
@@ -265,10 +276,7 @@ export const UserForm = () => {
         >
           <Input />
         </Form.Item>
-        <Form.Item
-          label='Modules'
-          tooltip='What do you want others to call you?'
-        >
+        <Form.Item label='Modules'>
           <Row gutter={[10, 10]}>
             <Col span={8}>
               <Form.Item name={['modules', 'dashboard']}>
@@ -330,7 +338,7 @@ export const UserForm = () => {
 
         <Form.Item {...tailFormItemLayout}>
           <Button type='primary' htmlType='submit'>
-            Register
+            {user?.id ? 'Update' : 'Register'}
           </Button>
         </Form.Item>
       </Form>

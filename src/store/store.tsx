@@ -1,5 +1,6 @@
 import { configureStore, AnyAction } from '@reduxjs/toolkit'
 import { combineReducers } from 'redux'
+import { refreshUser } from 'features/Login/authSlice'
 import {
   persistStore,
   persistReducer,
@@ -52,5 +53,11 @@ export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
 export const useAppDispatch = () => useDispatch<AppDispatch>()
 
 const persistor = persistStore(store)
+
+persistor.subscribe(() => {
+  const { token } = store.getState().auth.tokens.refresh
+  console.log(store.getState(), 'store.getState()')
+  if (token) store.dispatch(refreshUser(token))
+})
 
 export { store, persistor }

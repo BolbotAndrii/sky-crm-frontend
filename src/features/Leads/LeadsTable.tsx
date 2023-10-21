@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { Tooltip, Modal } from 'antd'
 import { FilterDropdownProps } from 'antd/es/table/interface'
 import { Table } from 'components/Table/Table'
-
+import { CheckboxValueType } from 'antd/es/checkbox/Group'
 import { PaginationConfig } from 'antd/lib/pagination'
 
 import { SorterResult } from 'antd/lib/table/interface'
@@ -21,6 +21,21 @@ import { LeadForm } from './LeadForm/LeadForm'
 import { SearchFilter } from 'components/Table/components/SearchFilter'
 import { DateRangeFilter } from 'components/Table/components/DateRangeFilter'
 import { useOffice } from 'hooks/useOffices'
+import { countryCodes } from 'utils/countryCodes'
+import { SettingOutlined } from '@ant-design/icons'
+import { TableSettings } from 'components/Table/components/TableSettings'
+import useLocalStorage from 'hooks/useLocalStorage'
+import { getValueFromLS } from 'hooks/useLocalStorage'
+
+const customPhoneCodeOptions = countryCodes.map(code => ({
+  value: code.dial_code,
+  text: `${code.dial_code} - ${code.name} ${code.emoji}`,
+}))
+
+const customCountryCodeOptions = countryCodes.map(code => ({
+  value: code.code,
+  text: `${code.code} - ${code.name} ${code.emoji}`,
+}))
 
 const linkStyle = {
   color: '#1890ff',
@@ -109,7 +124,14 @@ export const LeadsTable = () => {
   const [data, setData] = useState<ILead[]>([])
   const [lead, setLead] = useState<ILead>(initialState)
   const [loading, setLoading] = useState(false)
-
+  const [openSettings, setOpenSettings] = useState(false)
+  const [selectedColumns, setSelectedColumns] = useState<CheckboxValueType[]>(
+    getValueFromLS('leads-columns') || [],
+  )
+  const [settings, setSettings] = useLocalStorage(
+    'leads-columns',
+    selectedColumns,
+  )
   const [pagination, setPagination] = useState({
     page: 1,
     per_page: 25,
@@ -122,6 +144,11 @@ export const LeadsTable = () => {
   const [checkedRows, setCheckedRows] = useState([])
 
   const [openModal, setOpenModal] = useState(false)
+
+  const onChangeTableSettings = (checkedValues: CheckboxValueType[]) => {
+    setSelectedColumns(checkedValues)
+    setSettings(checkedValues)
+  }
 
   const handleOpenModal = (lead: ILead) => {
     setOpenModal(true)
@@ -203,6 +230,7 @@ export const LeadsTable = () => {
     () => [
       {
         title: renderTitle('First Name'),
+        name: 'First Name',
         dataIndex: 'first_name',
         sorter: true,
         width: 200,
@@ -212,6 +240,7 @@ export const LeadsTable = () => {
       },
       {
         title: renderTitle('Last Name'),
+        name: 'Last Name',
         dataIndex: 'last_name',
         sorter: true,
         width: 200,
@@ -221,6 +250,7 @@ export const LeadsTable = () => {
       },
       {
         title: renderTitle('Phone'),
+        name: 'Phone',
         dataIndex: 'phone',
         sorter: true,
         width: 200,
@@ -230,12 +260,15 @@ export const LeadsTable = () => {
       },
       {
         title: renderTitle('Phone Code'),
+        name: 'Phone Code',
         dataIndex: 'phone_code',
         sorter: true,
         width: 200,
+        filters: customPhoneCodeOptions,
       },
       {
         title: renderTitle('Email'),
+        name: 'Email',
         dataIndex: 'email',
         sorter: true,
         width: 200,
@@ -245,18 +278,23 @@ export const LeadsTable = () => {
       },
       {
         title: renderTitle('Country'),
+        name: 'Country',
         dataIndex: 'country',
         sorter: true,
         width: 80,
+        filters: customCountryCodeOptions,
       },
       {
         title: renderTitle('Country Code'),
+        name: 'Country Code',
         dataIndex: 'country_code',
         sorter: true,
         width: 120,
+        filters: customCountryCodeOptions,
       },
       {
         title: renderTitle('Domain'),
+        name: 'Domain',
         dataIndex: 'domain',
         sorter: true,
         width: 200,
@@ -266,18 +304,22 @@ export const LeadsTable = () => {
       },
       {
         title: renderTitle('Language'),
+        name: 'Language',
         dataIndex: 'language',
         sorter: true,
         width: 200,
+        filters: customCountryCodeOptions,
       },
       {
         title: renderTitle('Password'),
+        name: 'Password',
         dataIndex: 'lead_password',
         sorter: true,
         width: 200,
       },
       {
         title: renderTitle('Offer'),
+        name: 'Offer',
         dataIndex: 'offer',
         sorter: true,
         width: 200,
@@ -287,6 +329,7 @@ export const LeadsTable = () => {
       },
       {
         title: renderTitle('Affilate'),
+        name: 'Affilate',
         dataIndex: 'affilate',
         sorter: true,
         width: 200,
@@ -295,6 +338,7 @@ export const LeadsTable = () => {
 
       {
         title: renderTitle('Status'),
+        name: 'Status',
         dataIndex: 'current_status',
         sorter: true,
         width: 150,
@@ -304,19 +348,8 @@ export const LeadsTable = () => {
 
       {
         title: renderTitle('Click ID'),
+        name: 'Click ID',
         dataIndex: 'click_id',
-        sorter: true,
-        width: 150,
-      },
-      {
-        title: renderTitle('Comment'),
-        dataIndex: 'comment',
-        sorter: true,
-        width: 150,
-      },
-      {
-        title: renderTitle('Buyer'),
-        dataIndex: 'buyer',
         sorter: true,
         width: 150,
         filterDropdown: (props: FilterDropdownProps) => (
@@ -324,56 +357,45 @@ export const LeadsTable = () => {
         ),
       },
       {
+        title: renderTitle('Comment'),
+        name: 'Comment',
+        dataIndex: 'comment',
+        sorter: true,
+        width: 150,
+        filterDropdown: (props: FilterDropdownProps) => (
+          <SearchFilter title='Comment' {...props} />
+        ),
+      },
+      {
+        title: renderTitle('Buyer'),
+        name: 'Buyer',
+        dataIndex: 'buyer',
+        sorter: true,
+        width: 150,
+        filterDropdown: (props: FilterDropdownProps) => (
+          <SearchFilter title='Buyer' {...props} />
+        ),
+      },
+      {
         title: renderTitle('Account'),
+        name: 'Account',
         dataIndex: 'account',
         sorter: true,
         width: 150,
       },
       {
         title: renderTitle('IP'),
+        name: 'IP',
         dataIndex: 'ip',
         sorter: true,
         width: 150,
-      },
-      {
-        title: renderTitle('Param 1'),
-        dataIndex: 'param_1',
-        sorter: true,
-        width: 150,
-      },
-      {
-        title: renderTitle('Param 2'),
-        dataIndex: 'param_2',
-        sorter: true,
-        width: 150,
-      },
-      {
-        title: renderTitle('Param 3'),
-        dataIndex: 'param_3',
-        sorter: true,
-        width: 150,
-      },
-      {
-        title: renderTitle('Param 4'),
-        dataIndex: 'param_4',
-        sorter: true,
-        width: 150,
-      },
-      {
-        title: renderTitle('Param 5'),
-        dataIndex: 'param_5',
-        sorter: true,
-        width: 150,
-      },
-
-      {
-        title: renderTitle('Param 6'),
-        dataIndex: 'param_6',
-        sorter: true,
-        width: 150,
+        filterDropdown: (props: FilterDropdownProps) => (
+          <SearchFilter title='IP' {...props} />
+        ),
       },
       {
         title: renderTitle('Created at'),
+        name: 'Created at',
         dataIndex: 'created_at',
         sorter: true,
         width: 150,
@@ -384,6 +406,7 @@ export const LeadsTable = () => {
       },
       {
         title: renderTitle('Updated_at'),
+        name: 'Updated_at',
         dataIndex: 'updated_at',
         sorter: true,
         width: 150,
@@ -393,7 +416,80 @@ export const LeadsTable = () => {
         ),
       },
       {
+        title: renderTitle('Param 1'),
+        name: 'Param 1',
+        dataIndex: 'param_1',
+        sorter: true,
+        width: 150,
+      },
+      {
+        title: renderTitle('Param 2'),
+        name: 'Param 2',
+        dataIndex: 'param_2',
+        sorter: true,
+        width: 150,
+      },
+      {
+        title: renderTitle('Param 3'),
+        name: 'Param 3',
+        dataIndex: 'param_3',
+        sorter: true,
+        width: 150,
+      },
+      {
+        title: renderTitle('Param 4'),
+        name: 'Param 4',
+        dataIndex: 'param_4',
+        sorter: true,
+        width: 150,
+      },
+      {
+        title: renderTitle('Param 5'),
+        name: 'Param 5',
+        dataIndex: 'param_5',
+        sorter: true,
+        width: 150,
+      },
+
+      {
+        title: renderTitle('Param 6'),
+        name: 'Param 6',
+        dataIndex: 'param_6',
+        sorter: true,
+        width: 150,
+      },
+      {
+        title: renderTitle('Param 7'),
+        name: 'Param 7',
+        dataIndex: 'param_7',
+        sorter: true,
+        width: 150,
+      },
+      {
+        title: renderTitle('Param 8'),
+        name: 'Param 8',
+        dataIndex: 'param_8',
+        sorter: true,
+        width: 150,
+      },
+      {
+        title: renderTitle('Param 9'),
+        name: 'Param 9',
+        dataIndex: 'param_9',
+        sorter: true,
+        width: 150,
+      },
+      {
+        title: renderTitle('Param 10'),
+        name: 'Param 10',
+        dataIndex: 'param_10',
+        sorter: true,
+        width: 150,
+      },
+
+      {
         title: renderTitle('Actions'),
+        name: 'Actions',
         dataIndex: 'actions',
         align: 'center',
         width: 150,
@@ -405,8 +501,6 @@ export const LeadsTable = () => {
     ],
     [clickedRowIndex, office],
   )
-
-  console.log(office, 'office')
 
   const onRow = (record: any, rowIndex: number) => ({
     onClick: () => {
@@ -442,8 +536,13 @@ export const LeadsTable = () => {
 
   return (
     <>
+      <Heading>
+        <div onClick={() => setOpenSettings(prev => !prev)}>
+          <SettingOutlined style={{ color: '#1668dc', cursor: 'pointer' }} />
+        </div>
+      </Heading>
       <Table
-        columns={columns}
+        columns={columns?.filter(item => settings?.includes(item.dataIndex))}
         dataSource={data}
         pagination={pagination}
         onChange={handleTableChange}
@@ -461,6 +560,13 @@ export const LeadsTable = () => {
       >
         <LeadForm lead={lead} handleUpdateLead={handleUpdateLead} />
       </Modal>
+      <TableSettings
+        columns={columns}
+        open={openSettings}
+        onChange={onChangeTableSettings}
+        onClose={() => setOpenSettings(false)}
+        value={settings}
+      />
     </>
   )
 }
@@ -474,4 +580,12 @@ const StatusWrapper = styled.div<StyleProps>`
   text-align: center;
   border-radius: 5px;
   font-weight: bold;
+`
+
+const Heading = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 10px;
+  margin-bottom: 10px;
 `

@@ -19,3 +19,9 @@ export const logout = (data: {
 }): Promise<AxiosResponse<any, any>> => {
   return axiosBaseQuery.post(AuthEnum.LOGOUT, data).then(data => data.data)
 }
+
+export const refresh = (data: {
+  refreshToken: string
+}): Promise<AxiosResponse<any, any>> => {
+  return axiosBaseQuery.post(AuthEnum.REFRESH, data).then(data => data.data)
+}

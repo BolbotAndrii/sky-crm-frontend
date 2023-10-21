@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { login, logout } from 'api/auth'
+import { login, logout, refresh } from 'api/auth'
 import { RootState } from 'store/store'
 import { IUser } from 'types/User'
 
@@ -19,11 +19,32 @@ interface LoginCredentials {
   password: string
 }
 
+interface RefreshCredentials {
+  refreshToken: string
+}
+
 export const loginUser = createAsyncThunk(
   'auth/login',
   async ({ email, password }: LoginCredentials, { rejectWithValue }) => {
     try {
       const res = await login({ email, password })
+
+      return res
+    } catch (error) {
+      if (error.response && error.response.data.message) {
+        return rejectWithValue(error.response.data.message)
+      } else {
+        return rejectWithValue(error.message)
+      }
+    }
+  },
+)
+
+export const refreshUser = createAsyncThunk(
+  'auth/refresh',
+  async (refreshToken: RefreshCredentials, { rejectWithValue }) => {
+    try {
+      const res = await refresh({ refreshToken })
 
       return res
     } catch (error) {
@@ -82,6 +103,23 @@ const authSlice = createSlice({
       state.tokens = payload.tokens
     },
     [loginUser.rejected]: (state, { payload }) => {
+      state.loading = false
+      state.success = false
+      state.error = payload
+    },
+
+    //REFRESH
+    [refreshUser.pending]: state => {
+      state.loading = false
+      state.error = null
+    },
+    [refreshUser.fulfilled]: (state, { payload }) => {
+      state.loading = false
+      state.success = true
+      state.user = payload.user
+      state.tokens = payload.tokens
+    },
+    [refreshUser.rejected]: (state, { payload }) => {
       state.loading = false
       state.success = false
       state.error = payload

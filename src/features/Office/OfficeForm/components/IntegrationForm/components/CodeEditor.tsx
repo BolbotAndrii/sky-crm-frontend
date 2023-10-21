@@ -50,7 +50,7 @@ export const CodeEditor: FC<IProps> = ({
       <div className='w-tc-editor-var'> </div>
       <Editor
         className='code-editor'
-        value={jsonFormat(code, { type: 'space', size: 2 })}
+        value={code ? jsonFormat(code, { type: 'space', size: 2 }) : ''}
         language='json'
         placeholder='Please enter code.'
         onChange={onChange}

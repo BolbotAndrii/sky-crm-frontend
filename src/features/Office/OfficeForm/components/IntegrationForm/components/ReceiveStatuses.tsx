@@ -9,8 +9,10 @@ import {
 } from '@ant-design/icons'
 import { Button, Form, Input, Space, Select, Divider, notification } from 'antd'
 import { generateVariables, arrayToObject } from 'features/Office/utils'
-import { createOfficeItegration, updateOfficeItegration } from 'api/office'
-import { useIntegration } from 'hooks/useIntegration'
+
+import { createRequestStatus, updateRequestStatus } from 'api/status'
+
+import { useStatuses } from 'hooks/useStatuses'
 
 const Variable = ({ label, value, onDragStart }) => {
   return (
@@ -38,7 +40,7 @@ interface IProps {
 const selectOptions = generateVariables()
 
 export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
-  const { integration } = useIntegration(companyId)
+  const { statuses } = useStatuses(companyId)
   const [headerForm] = Form.useForm()
 
   const [responceForm] = Form.useForm()
@@ -103,19 +105,18 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
     const headers = header
     const template = body
     const response = responce
-    const options = options
 
     const data = {
       office_data,
-      options,
+      options: options,
       headers,
       template,
       response,
     }
 
     try {
-      await createOfficeItegration(data)
-      notification.success({ message: 'Integration was created successfully!' })
+      await createRequestStatus(data)
+      notification.success({ message: 'Statuses was created successfully!' })
     } catch (error) {
       notification.error({ message: 'Something went wrong!' })
       console.log(error)
@@ -142,8 +143,8 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
     }
 
     try {
-      await updateOfficeItegration(data, { integrationId: integration.id })
-      notification.success({ message: 'Integration was update successfully!' })
+      await updateRequestStatus(data, { statusesId: statuses.id })
+      notification.success({ message: 'Statuses was update successfully!' })
     } catch (error) {
       notification.error({ message: 'Something went wrong!' })
       console.log(error)
@@ -159,19 +160,23 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
   }
 
   useEffect(() => {
-    if (integration?.id) {
-      setOptions(integration.options)
-      setHeader(integration.headers)
-      setBody(integration.template)
-      setResponce(integration.response)
+    if (statuses?.id) {
+      setOptions(statuses?.options)
+      setHeader(statuses?.headers)
+      setBody(statuses?.template)
+      setResponce(statuses?.response)
       headerForm.setFieldsValue({
-        header: transformDataForForm(integration.headers),
+        header: statuses?.headers
+          ? transformDataForForm(statuses?.headers)
+          : [],
       })
       responceForm.setFieldsValue({
-        responce: transformDataForForm(integration.response),
+        responce: statuses?.response
+          ? transformDataForForm(statuses?.response)
+          : [],
       })
     }
-  }, [integration?.id])
+  }, [statuses?.id])
 
   return (
     <Wrapper>
@@ -229,7 +234,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
           <div>
             {' '}
             <Form
-              name='header'
+              name='header_status'
               onFinish={onFinish}
               style={{ maxWidth: 600 }}
               autoComplete='off'
@@ -321,7 +326,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
           <div>
             {' '}
             <Form
-              name='responce'
+              name='responce-status'
               onFinish={onFinish}
               style={{ maxWidth: 600 }}
               autoComplete='off'
@@ -382,7 +387,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
           </div>
         </BlockInner>
       </Block>
-      {!integration?.id ? (
+      {!statuses?.id ? (
         <Button onClick={onSubmit}>Create</Button>
       ) : (
         <Button onClick={onUpdate}>Update</Button>
