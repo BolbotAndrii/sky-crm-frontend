@@ -7,6 +7,7 @@ enum LeadEnum {
   GET_LIST_LEADS = 'lead/leads-list',
   DELETE_LEAD = 'lead/delete',
   UPDATE_LEAD = 'lead/update',
+  CREATE_LEAD_PUBLIC = 'lead/public-lead',
 }
 
 interface LeadsData {
@@ -38,4 +39,10 @@ export const updateLead = (
   return axiosBaseQuery
     .put(`${LeadEnum.UPDATE_LEAD}?leadId=${leadId}`, data)
     .then((response: AxiosResponse<ILead>) => response.data)
+}
+
+export const createPublicLead = (data): Promise<ILead> => {
+  return axiosBaseQuery
+    .post(LeadEnum.CREATE_LEAD_PUBLIC, data)
+    .then((response: AxiosResponse<any>) => response.data)
 }

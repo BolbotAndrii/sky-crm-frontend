@@ -3,6 +3,7 @@ import { ConfigProvider, theme } from 'antd'
 import { PublicRouter } from 'routes/PublicRoutes'
 import { PrivateRouter } from 'routes/PrivateRoutes'
 import { useAppSelector } from 'store/store'
+import { SocketService } from 'services/SocketService/SocketService'
 
 const { defaultAlgorithm, darkAlgorithm } = theme
 
@@ -16,7 +17,13 @@ export const Builder = () => {
         algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm,
       }}
     >
-      {isAuth ? <PrivateRouter /> : <PublicRouter />}
+      {isAuth ? (
+        <SocketService>
+          <PrivateRouter />
+        </SocketService>
+      ) : (
+        <PublicRouter />
+      )}
     </ConfigProvider>
   )
 }

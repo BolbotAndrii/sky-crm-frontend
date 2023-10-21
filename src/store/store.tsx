@@ -56,7 +56,7 @@ const persistor = persistStore(store)
 
 persistor.subscribe(() => {
   const { token } = store.getState().auth.tokens.refresh
-  console.log(store.getState(), 'store.getState()')
+
   if (token) store.dispatch(refreshUser(token))
 })
 

@@ -4,6 +4,7 @@ import type { TabsProps } from 'antd'
 import { MainForm } from './components/MainForm/MainForm'
 import { IntegrationForm } from './components/IntegrationForm/IntegrationForm'
 import { LeadSetupForm } from './components/LeadsSetupForm/LeadSetupForm'
+import { Test } from './components/Test/Test'
 import { useParams } from 'react-router-dom'
 
 export const OfficeForm = () => {
@@ -25,6 +26,12 @@ export const OfficeForm = () => {
       key: '3',
       label: 'Presets',
       children: <LeadSetupForm companyId={companyId} />,
+      disabled: companyId === 'new',
+    },
+    {
+      key: '4',
+      label: 'Test API',
+      children: <Test companyId={companyId} />,
       disabled: companyId === 'new',
     },
   ]

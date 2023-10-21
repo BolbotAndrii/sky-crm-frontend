@@ -33,6 +33,8 @@
     "redux": "^4.2.1",
     "redux-persist": "^6.0.0",
     "sass": "^1.64.2",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
     "styled-components": "^6.0.7",
     "typescript": "^5.1.6",
     "web-vitals": "^2.1.4"
