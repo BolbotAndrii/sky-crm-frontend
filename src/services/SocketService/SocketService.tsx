@@ -1,7 +1,7 @@
 import React from 'react'
 import { notification } from 'antd'
 import { io } from 'socket.io-client'
-import { CREATE_PUBLIC_LEAD } from './constants'
+import { CREATE_PUBLIC_LEAD, GETTING_LEAD_STATUS } from './constants'
 import { SmileOutlined } from '@ant-design/icons'
 import { ILead } from 'types/Lead'
 
@@ -33,10 +33,26 @@ export const SocketService = ({ children }) => {
       icon: <SmileOutlined style={{ color: '#108ee9' }} />,
     })
   }
+  const updateStatuses = data => {
+    api.open({
+      message: data?.message,
+      description: (
+        <>
+          <p>Leads status was updated!</p>
+        </>
+      ),
+
+      icon: <SmileOutlined style={{ color: '#108ee9' }} />,
+    })
+  }
 
   React.useEffect(() => {
     if (!socket.hasListeners(CREATE_PUBLIC_LEAD)) {
       socket.on(CREATE_PUBLIC_LEAD, gotNewLead)
+    }
+
+    if (!socket.hasListeners(GETTING_LEAD_STATUS)) {
+      socket.on(GETTING_LEAD_STATUS, updateStatuses)
     }
   }, [])
 

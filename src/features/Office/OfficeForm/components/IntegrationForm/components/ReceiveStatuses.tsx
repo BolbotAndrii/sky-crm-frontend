@@ -7,7 +7,16 @@ import {
   PlusOutlined,
   DragOutlined,
 } from '@ant-design/icons'
-import { Button, Form, Input, Space, Select, Divider, notification } from 'antd'
+import {
+  Button,
+  Form,
+  Input,
+  Space,
+  Select,
+  Divider,
+  notification,
+  Checkbox,
+} from 'antd'
 import { generateVariables, arrayToObject } from 'features/Office/utils'
 
 import { createRequestStatus, updateRequestStatus } from 'api/status'
@@ -42,14 +51,23 @@ const selectOptions = generateVariables()
 export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
   const { statuses } = useStatuses(companyId)
   const [headerForm] = Form.useForm()
-
+  const [bodyForm] = Form.useForm()
   const [responceForm] = Form.useForm()
   const [options, setOptions] = useState({
     url: '',
     method: '',
     content_type: '',
   })
-  const [responce, setResponce] = useState({})
+  const [cron_task_data, setCron_task_data] = useState({
+    active: true,
+    interval: 10,
+  })
+
+  const [responce, setResponce] = useState({
+    autologin: '',
+    ext_status: '',
+    lead_id: '',
+  })
   const [header, setHeader] = useState({})
   const [body, setBody] = useState({})
   const [inputType, setInputType] = useState('select')
@@ -76,7 +94,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
     setHeader(headerForm.getFieldsValue()?.header)
   }
   const handleChangeBody = e => {
-    setBody(JSON.parse(e.target.value))
+    setBody(bodyForm.getFieldsValue()?.body)
   }
 
   const handleChangeResponce = () => {
@@ -112,6 +130,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
       headers,
       template,
       response,
+      cron_task_data,
     }
 
     try {
@@ -130,7 +149,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
     }
 
     const headers = arrayToObject(header)
-    const template = body
+    const template = arrayToObject(body)
     const response = arrayToObject(responce)
     const headerOptions = arrayToObject(options)
 
@@ -140,6 +159,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
       headers,
       template,
       response,
+      cron_task_data,
     }
 
     try {
@@ -165,6 +185,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
       setHeader(statuses?.headers)
       setBody(statuses?.template)
       setResponce(statuses?.response)
+      setCron_task_data(statuses.cron_task_data)
       headerForm.setFieldsValue({
         header: statuses?.headers
           ? transformDataForForm(statuses?.headers)
@@ -175,11 +196,58 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
           ? transformDataForForm(statuses?.response)
           : [],
       })
+      bodyForm.setFieldsValue({
+        template: statuses?.template
+          ? transformDataForForm(statuses?.template)
+          : [],
+      })
     }
   }, [statuses?.id])
 
   return (
     <Wrapper>
+      <Block>
+        <BlockTitle>Getting Options</BlockTitle>
+        <BlockInner
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            alignItems: 'start',
+            marginBottom: '20px',
+          }}
+        >
+          <Checkbox
+            onChange={e => {
+              setCron_task_data(prev => ({ ...prev, active: e.target.checked }))
+            }}
+            checked={cron_task_data.active}
+          >
+            {' '}
+            getting status automatically{' '}
+          </Checkbox>
+          <Select
+            style={{ maxWidth: '200px' }}
+            onChange={value => {
+              setCron_task_data(prev => ({ ...prev, interval: value }))
+            }}
+            value={cron_task_data.interval}
+            placeholder='Select interval'
+          >
+            <Select.Option value={1}>1 min.</Select.Option>
+            <Select.Option value={2}>2 min.</Select.Option>
+            <Select.Option value={5}>5 min.</Select.Option>
+            <Select.Option value={10}>10 min.</Select.Option>
+            <Select.Option value={30}>30 min.</Select.Option>
+            <Select.Option value={60}>1 hrs.</Select.Option>
+            <Select.Option value={120}>2 hrs.</Select.Option>
+            <Select.Option value={180}>3 hrs.</Select.Option>
+            <Select.Option value={360}>6 hrs.</Select.Option>
+            <Select.Option value={720}>12 hrs.</Select.Option>
+            <Select.Option value={1440}>24 hrs.</Select.Option>
+          </Select>
+        </BlockInner>
+      </Block>
       <Block>
         <BlockTitle>Request Options</BlockTitle>
         <BlockInner>
@@ -296,22 +364,66 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
       </Block>
       <Divider />
       <Block>
-        <BlockTitle>Request Body</BlockTitle>
+        <BlockTitle>Request Params</BlockTitle>
         <BlockInner>
           <div>
-            <VariableList>
-              {selectOptions.map(item => (
-                <Variable
-                  key={item.label}
-                  onDragStart={e => handleDragStart(e, item)}
-                  {...item}
-                />
-              ))}
-            </VariableList>
+            <Form
+              name='body'
+              onFinish={onFinish}
+              style={{ maxWidth: 600 }}
+              autoComplete='off'
+              form={bodyForm}
+              onFieldsChange={handleChangeBody}
+            >
+              <Form.List name='body'>
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...restField }) => (
+                      <Space
+                        key={key}
+                        style={{ display: 'flex', marginBottom: 8 }}
+                        align='baseline'
+                      >
+                        <Form.Item
+                          {...restField}
+                          name={[name, 'name']}
+                          rules={[{ required: true, message: 'Missing key' }]}
+                        >
+                          <Input placeholder='Key' />
+                        </Form.Item>
+                        <Form.Item
+                          {...restField}
+                          name={[name, 'value']}
+                          rules={[{ required: true, message: 'Missing value' }]}
+                        >
+                          <Input placeholder='Value' />
+                        </Form.Item>
+                        <MinusCircleOutlined onClick={() => remove(name)} />
+                      </Space>
+                    ))}
+                    <Form.Item>
+                      <Button
+                        type='dashed'
+                        onClick={() => {
+                          add()
+
+                          handleChangeInputType('input')
+                        }}
+                        block
+                        icon={<PlusOutlined />}
+                      >
+                        Add input field
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
+            </Form>
           </div>
+
           <div>
             <CodeEditor
-              code={body}
+              code={arrayToObject(body)}
               onChange={handleChangeBody}
               onDrop={handleDrop}
               draggedItem={draggedItem}
