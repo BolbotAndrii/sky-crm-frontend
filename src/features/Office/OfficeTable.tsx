@@ -12,12 +12,11 @@ import { ColumnProps } from 'antd/lib/table'
 import { toggleLoading } from 'store/ui/UISlice'
 import { useDispatch } from 'react-redux'
 import { IOffice } from 'types/Office'
-import { getOfficeList } from 'api/office'
+import { getOfficeList, deleteOfficeById } from 'api/office'
 import moment from 'moment-timezone'
 import { TableActions } from 'components/TableActions/TableActions'
 import styled from 'styled-components'
 import { useNavigate } from 'react-router-dom'
-import { RoutesPath } from 'routes/types'
 
 const renderTitle = name => (
   <Tooltip placement='topLeft' title={name}>
@@ -75,9 +74,21 @@ export const OfficeTable = () => {
     })
   }
 
+  const handleDeleteOffice = async id => {
+    try {
+      await deleteOfficeById({ id })
+      setData(prev => prev.filter(item => item.id !== id))
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   const tableActionProps = (record: IOffice) => ({
     todos: ['delete', 'edit'],
-    callbacks: [() => null, () => navigate(`/offices/${record.id}`)],
+    callbacks: [
+      () => handleDeleteOffice(record.id),
+      () => navigate(`/offices/${record.id}`),
+    ],
 
     disabled: [false, false, true],
     tooltips: ['Remove this office?', 'Open this office in the new tab?'],

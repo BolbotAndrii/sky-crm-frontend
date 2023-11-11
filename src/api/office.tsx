@@ -9,6 +9,7 @@ enum OfficeEnum {
   GET_LIST = 'office/full-list',
   CREATE_OFFICE = 'office/create',
   CREATE_UPDATE = 'office/update',
+  DELETE_OFFICE = 'office/delete',
   GET_OFFICE_BY_ID = 'office/office',
   GET_INTEGRA_BY_OFFICE_ID = 'office/integration/get-by-office-id',
   ADD_INTEGRATION = 'office/integration/add',
@@ -40,6 +41,11 @@ export const getOffices = (): Promise<null> => {
 export const getOfficeById = (params: any): Promise<OfficeData> => {
   return axiosBaseQuery
     .get(OfficeEnum.GET_OFFICE_BY_ID, { params })
+    .then((response: AxiosResponse<OfficeData>) => response.data)
+}
+export const deleteOfficeById = (params: any): Promise<OfficeData> => {
+  return axiosBaseQuery
+    .delete(OfficeEnum.DELETE_OFFICE, { params })
     .then((response: AxiosResponse<OfficeData>) => response.data)
 }
 
