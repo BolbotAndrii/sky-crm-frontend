@@ -19,7 +19,7 @@ export const generateVariables = () => {
     ip: '',
     phone_code: '',
     current_status: '',
-    affilate: '',
+    affiliate: '',
     status: '',
     param_1: '',
     param_2: '',

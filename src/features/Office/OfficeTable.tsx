@@ -99,9 +99,9 @@ export const OfficeTable = () => {
     () => [
       {
         title: renderTitle('Status'),
-        dataIndex: 'active',
+        dataIndex: 'status',
         sorter: true,
-        render: value => <p>{value ? 'Active' : 'Inactive'}</p>,
+        render: value => <p>{value === 1 ? 'Active' : 'Inactive'}</p>,
         width: 100,
       },
       {
