@@ -23,21 +23,6 @@ import { createRequestStatus, updateRequestStatus } from 'api/status'
 
 import { useStatuses } from 'hooks/useStatuses'
 
-const Variable = ({ label, value, onDragStart }) => {
-  return (
-    <Button
-      draggable='true'
-      style={{ cursor: 'pointer' }}
-      onDragStart={onDragStart}
-      onClick={e => {
-        e.preventDefault()
-        e.stopPropagation()
-      }}
-      icon={<DragOutlined />}
-    >{`[${label}]`}</Button>
-  )
-}
-
 const onFinish = (values: any) => {
   console.log('Received values of form:', values)
 }
@@ -45,8 +30,6 @@ const onFinish = (values: any) => {
 interface IProps {
   companyId: string
 }
-
-const selectOptions = generateVariables()
 
 export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
   const { statuses } = useStatuses(companyId)
@@ -63,6 +46,11 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
     interval: 10,
   })
 
+  const [additional, setAdditional] = useState({
+    date_format: '',
+    date_interval: '',
+  })
+
   const [responce, setResponce] = useState({
     autologin: '',
     ext_status: '',
@@ -72,12 +60,6 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
   const [body, setBody] = useState({})
   const [inputType, setInputType] = useState('select')
   const [draggedItem, setDraggedItem] = useState(null)
-
-  const handleDragStart = (e, item) => {
-    e.stopPropagation()
-    e.dataTransfer.setData('text/plain', JSON.stringify(item))
-    setDraggedItem(item)
-  }
 
   const handleChangeInputType = (type: 'select' | 'input') => {
     setInputType(type)
@@ -131,6 +113,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
       template,
       response,
       cron_task_data,
+      ...additional,
     }
 
     try {
@@ -160,6 +143,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
       template,
       response,
       cron_task_data,
+      ...additional,
     }
 
     try {
@@ -186,6 +170,10 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
       setBody(statuses?.template)
       setResponce(statuses?.response)
       setCron_task_data(statuses.cron_task_data)
+      setAdditional({
+        date_format: statuses?.date_format,
+        date_interval: statuses?.date_interval,
+      })
       headerForm.setFieldsValue({
         header: statuses?.headers
           ? transformDataForForm(statuses?.headers)
@@ -365,6 +353,50 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
       <Divider />
       <Block>
         <BlockTitle>Request Params</BlockTitle>
+        <div style={{ marginBottom: '20px' }}>
+          <div>Interval</div>
+          <div>
+            <Select
+              placeholder='Interval'
+              style={{ width: '100%' }}
+              value={additional.date_interval}
+              onChange={value =>
+                setAdditional(prev => ({
+                  ...prev,
+                  date_interval: value,
+                }))
+              }
+              options={[
+                { label: '1 day', value: 1 },
+                { label: '2 day', value: 2 },
+                { label: '3 day', value: 3 },
+                { label: '4 day', value: 4 },
+                { label: '5 day', value: 5 },
+                { label: '6 day', value: 6 },
+                { label: '7 day', value: 7 },
+                { label: '14 day', value: 14 },
+                { label: '21 day', value: 21 },
+                { label: '28 day', value: 28 },
+              ]}
+            />
+          </div>
+        </div>
+        <div style={{ marginBottom: '20px' }}>
+          <div>Date Format</div>
+          <div>
+            <Input
+              value={additional.date_format}
+              onChange={e =>
+                setAdditional(prev => ({
+                  ...prev,
+                  date_format: e.target.value,
+                }))
+              }
+              style={{ width: '100%' }}
+              placeholder='MM/DD/YYYY'
+            />
+          </div>
+        </div>
         <BlockInner>
           <div>
             <Form
