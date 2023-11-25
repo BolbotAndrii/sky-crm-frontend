@@ -407,7 +407,7 @@ export const ReceiveStatuses: FC<IProps> = ({ companyId }) => {
               form={bodyForm}
               onFieldsChange={handleChangeBody}
             >
-              <Form.List name='body'>
+              <Form.List name='template'>
                 {(fields, { add, remove }) => (
                   <>
                     {fields.map(({ key, name, ...restField }) => (

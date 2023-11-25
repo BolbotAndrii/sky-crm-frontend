@@ -118,6 +118,25 @@ const renderStatus = statusObj => {
   )
 }
 
+const renderExternalStatusLog = array => {
+  if (!array?.length) return '-'
+
+  if (array?.length === 1) {
+    const [status] = array
+    return status?.status || status?.status?.title
+  }
+
+  return (
+    <Tooltip
+      title={array?.map((item, idx) => (
+        <p key={idx}>{item?.status || item?.status?.title}</p>
+      ))}
+    >
+      {array?.[array.length - 1]?.status || '-'}
+    </Tooltip>
+  )
+}
+
 export const LeadsTable = () => {
   const dispatch = useDispatch()
   const { office } = useOffice()
@@ -343,6 +362,17 @@ export const LeadsTable = () => {
         sorter: true,
         width: 150,
         render: renderStatus,
+        filters: statusFilter,
+      },
+
+      {
+        title: renderTitle('Ext. Status'),
+        name: 'Ext. Status',
+        dataIndex: 'status',
+        sorter: true,
+        width: 150,
+        render: (value, record) =>
+          renderExternalStatusLog(value?.external_statuses || []),
         filters: statusFilter,
       },
 
